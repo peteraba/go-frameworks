@@ -407,6 +407,11 @@ components:
       type: object
       description: Object used to create a new TODO list
       properties:
+        projectId:
+          type: string
+          example: "01K02QBK5K1PBQ7TP755AFWJWQ"
+          maxLength: 26
+          format: ulid
         name:
           type: string
           example: "Shopping list"
@@ -455,6 +460,11 @@ components:
       type: object
       description: Object used to create a new todo item
       properties:
+        listId:
+          type: string
+          example: "01K02QHC275FZX8AQ33EZX835K"
+          maxLength: 26
+          format: ulid
         title:
           type: string
           example: "Milk"
