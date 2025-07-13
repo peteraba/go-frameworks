@@ -1,0 +1,2 @@
+owasp-security-hosts-https-oas3:
+- $.servers[0].url

@@ -37,12 +37,7 @@ paths:
           description: A list of TODO projects
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
@@ -50,16 +45,17 @@ paths:
                 maxItems: 100
                 items:
                   $ref: '#/components/schemas/Project'
+              example:
+                - id: "01K02QGZD4JQPT6NYQNG73TV52"
+                  listId: "01K02QHC275FZX8AQ33EZX835K"
+                  name: "Shopping Lists"
+                  description: "All the lists the have to do with shopping"
+                  completed: true
         '4XX':
           description: Problem with the request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
     post:
       summary: Create a new TODO project
       operationId: createProject
@@ -69,6 +65,7 @@ paths:
         - ApiKeyAuth: []
       requestBody:
         required: true
+        description: The project to create.
         content:
           application/json:
             schema:
@@ -78,26 +75,16 @@ paths:
           description: Project created
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Project'
         '4XX':
-          description: Problem with the request
+          description: Problem with the project creation request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
 
   /projects/{projectId}:
     get:
@@ -108,39 +95,22 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
-            example: 01K02SD13A5YKWWZFV9AQP7H1X
+        - $ref: '#/components/parameters/ProjectId'
       responses:
         '200':
           description: Project details
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Project'
         '4XX':
-          description: Problem with the request
+          description: Problem with the project retrieval request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
 
   /lists:
     get:
@@ -155,12 +125,7 @@ paths:
           description: A list of TODO lists
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
@@ -168,16 +133,16 @@ paths:
                 maxItems: 100
                 items:
                   $ref: '#/components/schemas/List'
+              example:
+                - id: 01K02V6V1EX0A8W3X30WP2A0E6
+                  projectId: 01K02V79XJM8DS0W39VFEBB20Z
+                  name: "Random TODO List Title"
+                  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
         '4XX':
-          description: Problem with the request
+          description: Problem with the todo list listing request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
     post:
       summary: Create a new TODO list in a project
       operationId: createList
@@ -187,6 +152,7 @@ paths:
         - ApiKeyAuth: []
       requestBody:
         required: true
+        description: Request body for TODO list creation
         content:
           application/json:
             schema:
@@ -196,26 +162,16 @@ paths:
           description: List created
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 10
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/List'
         '4XX':
-          description: Problem with the request
+          description: Problem with the todo list creation request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
 
   /lists/{listId}:
     get:
@@ -226,39 +182,22 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: listId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
-            example: 01K02SDGMJM0Q915WHQYJ0YVDY
+        - $ref: '#/components/parameters/ListId'
       responses:
         '200':
           description: List details
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/List'
         '4XX':
-          description: Problem with the request
+          description: Problem with the todo list retrieval request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
 
   /lists/{listId}/todos:
     get:
@@ -269,25 +208,13 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: listId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
-            example: 01K02SDWXMXKBTW66GFJKX5Y9Q
+        - $ref: '#/components/parameters/ListId'
       responses:
         '200':
           description: A list of TODO items
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
@@ -295,16 +222,17 @@ paths:
                 maxItems: 1000
                 items:
                   $ref: '#/components/schemas/Todo'
+              example:
+                - id: 01K02VCHB4RC2NKDZSSK4N2V29
+                  listId: 01K02VGFMND0PBFMMDRCZ7BSA7
+                  title: Milk
+                  description: Bio from local vendor, below 5
+                  completed: false
         '4XX':
-          description: Problem with the request
+          description: Problem with the todo item listing request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
     post:
       summary: Create a new TODO item in a list
       operationId: createTodo
@@ -313,16 +241,10 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: listId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
-            example: 01K02SEAZW8N9ZA6HDS5BW2GAK
+        - $ref: '#/components/parameters/ListId'
       requestBody:
         required: true
+        description: The details of the TODO item to create
         content:
           application/json:
             schema:
@@ -332,26 +254,16 @@ paths:
           description: TODO item created
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Todo'
         '4XX':
-          description: Problem with the request
+          description: Problem with the todo list item creation request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
 
   /lists/{listId}/todos/{todoId}:
     get:
@@ -362,49 +274,68 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: listId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
-            example: 01K02SESQQS3BD7JKCPDCDNB5S
-        - name: todoId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
-            example: 01K02SF1XKPRMXDCACJ05WNT8T
+        - $ref: '#/components/parameters/ListId'
+        - $ref: '#/components/parameters/TodoId'
       responses:
         '200':
           description: TODO item details
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Todo'
         '4XX':
-          description: Problem with the request
+          description: Problem with the todo list item retrieval request
           headers:
             X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
+              $ref: '#/components/headers/RateLimitLimit'
 
 components:
+  headers:
+    RateLimitLimit:
+      description: The number of allowed requests in the current period
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 1000
+
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      description: The id of the project
+      schema:
+        type: string
+        format: ulid
+        maxLength: 26
+        example: 01K02SD13A5YKWWZFV9AQP7H1X
+
+    ListId:
+      name: listId
+      in: path
+      required: true
+      description: The id of the list
+      schema:
+        type: string
+        format: ulid
+        maxLength: 26
+        example: 01K02SDGMJM0Q915WHQYJ0YVDY
+
+    TodoId:
+      name: todoId
+      in: path
+      required: true
+      description: The id of the TODO item
+      schema:
+        type: string
+        format: ulid
+        maxLength: 26
+        example: 01K02SF1XKPRMXDCACJ05WNT8T
+
   schemas:
     Project:
       type: object
