@@ -215,7 +215,7 @@ components:
       properties:
         id:
           type: string
-          example: '2fb49833-e049-43fc-8687-939de721d93b'
+          example: '01K02G135R5F222VH8GHNXHVGW'
           maxLength: 36
           format: ulid
         title:
