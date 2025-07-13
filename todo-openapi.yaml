@@ -8,6 +8,13 @@ info:
   title: TODO Application API
   version: 1.0.0
   description: API for managing TODO items.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  contact:
+    name: API Support
+    url: https://www.example.com/support
+    email: support@example.com
 
 servers:
   - url: http://localhost:8080/api
@@ -17,6 +24,8 @@ paths:
     get:
       summary: List all TODO items
       operationId: listTodos
+      tags:
+        - todo
       security:
         - ApiKeyAuth: []
       responses:
@@ -27,6 +36,9 @@ paths:
               description: The number of allowed requests in the current period
               schema:
                 type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
           content:
             application/json:
               schema:
@@ -34,9 +46,21 @@ paths:
                 maxItems: 100
                 items:
                   $ref: '#/components/schemas/Todo'
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
     post:
       summary: Create a new TODO item
       operationId: createTodo
+      tags:
+        - todo
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -48,6 +72,14 @@ paths:
       responses:
         '201':
           description: The created TODO item
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 10
           content:
             application/json:
               schema:
@@ -56,6 +88,8 @@ paths:
     get:
       summary: Get a TODO item by ID
       operationId: getTodoById
+      tags:
+        - todo
       security:
         - ApiKeyAuth: []
       parameters:
@@ -69,15 +103,33 @@ paths:
       responses:
         '200':
           description: The requested TODO item
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Todo'
         '404':
           description: TODO item not found
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
     put:
       summary: Update a TODO item by ID
       operationId: updateTodoById
+      tags:
+        - todo
       security:
         - ApiKeyAuth: []
       parameters:
@@ -97,15 +149,33 @@ paths:
       responses:
         '200':
           description: The updated TODO item
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 10
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Todo'
         '404':
           description: TODO item not found
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
     delete:
       summary: Delete a TODO item by ID
       operationId: deleteTodoById
+      tags:
+        - todo
       security:
         - ApiKeyAuth: []
       parameters:
@@ -119,8 +189,24 @@ paths:
       responses:
         '204':
           description: TODO item deleted
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 10
         '404':
           description: TODO item not found
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
 
 components:
   schemas:
@@ -129,7 +215,9 @@ components:
       properties:
         id:
           type: string
-          example: '1'
+          example: '2fb49833-e049-43fc-8687-939de721d93b'
+          maxLength: 36
+          format: ulid
         title:
           type: string
           example: 'Buy groceries'
@@ -173,3 +261,8 @@ components:
           pattern: "^[a-zA-Z0-9_-]+$"
         completed:
           type: boolean 
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
