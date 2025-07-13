@@ -1,13 +1,17 @@
 openapi: 3.0.3
 
 tags:
+  - name: "project"
+    description: "Operations related to TODO projects"
+  - name: "list"
+    description: "Operations related to TODO lists"
   - name: "todo"
     description: "Operations related to TODO items"
 
 info:
   title: TODO Application API
   version: 1.0.0
-  description: API for managing TODO items.
+  description: API for managing TODO projects, lists, and items.
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -20,14 +24,259 @@ servers:
   - url: http://localhost:8080/api
 
 paths:
-  /todos:
+  /projects:
     get:
-      summary: List all TODO items
+      summary: List all TODO projects
+      operationId: listProjects
+      tags:
+        - project
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of TODO projects
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 100
+                items:
+                  $ref: '#/components/schemas/Project'
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+    post:
+      summary: Create a new TODO project
+      operationId: createProject
+      tags:
+        - project
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        '201':
+          description: Project created
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+
+  /projects/{projectId}:
+    get:
+      summary: Get a TODO project by ID
+      operationId: getProject
+      tags:
+        - project
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+            example: 01K02SD13A5YKWWZFV9AQP7H1X
+      responses:
+        '200':
+          description: Project details
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+
+  /lists:
+    get:
+      summary: List all TODO lists in a project
+      operationId: listLists
+      tags:
+        - list
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of TODO lists
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 100
+                items:
+                  $ref: '#/components/schemas/List'
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+    post:
+      summary: Create a new TODO list in a project
+      operationId: createList
+      tags:
+        - list
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListCreate'
+      responses:
+        '201':
+          description: List created
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 10
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+
+  /lists/{listId}:
+    get:
+      summary: Get a TODO list by ID
+      operationId: getList
+      tags:
+        - list
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+            example: 01K02SDGMJM0Q915WHQYJ0YVDY
+      responses:
+        '200':
+          description: List details
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+
+  /lists/{listId}/todos:
+    get:
+      summary: List all TODO items in a list
       operationId: listTodos
       tags:
         - todo
       security:
         - ApiKeyAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+            example: 01K02SDWXMXKBTW66GFJKX5Y9Q
       responses:
         '200':
           description: A list of TODO items
@@ -43,7 +292,7 @@ paths:
             application/json:
               schema:
                 type: array
-                maxItems: 100
+                maxItems: 1000
                 items:
                   $ref: '#/components/schemas/Todo'
         '4XX':
@@ -57,12 +306,21 @@ paths:
                 minimum: 1
                 maximum: 1000
     post:
-      summary: Create a new TODO item
+      summary: Create a new TODO item in a list
       operationId: createTodo
       tags:
         - todo
       security:
         - ApiKeyAuth: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+            example: 01K02SEAZW8N9ZA6HDS5BW2GAK
       requestBody:
         required: true
         content:
@@ -71,7 +329,7 @@ paths:
               $ref: '#/components/schemas/TodoCreate'
       responses:
         '201':
-          description: The created TODO item
+          description: TODO item created
           headers:
             X-RateLimit-Limit:
               description: The number of allowed requests in the current period
@@ -79,30 +337,50 @@ paths:
                 type: integer
                 format: int32
                 minimum: 1
-                maximum: 10
+                maximum: 1000
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Todo'
-  /todos/{id}:
+        '4XX':
+          description: Problem with the request
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 1000
+
+  /lists/{listId}/todos/{todoId}:
     get:
       summary: Get a TODO item by ID
-      operationId: getTodoById
+      operationId: getTodo
       tags:
         - todo
       security:
         - ApiKeyAuth: []
       parameters:
-        - in: path
-          name: id
+        - name: listId
+          in: path
           required: true
           schema:
             type: string
-            maxLength: 36
-            format: uuid
+            format: ulid
+            maxLength: 26
+            example: 01K02SESQQS3BD7JKCPDCDNB5S
+        - name: todoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+            example: 01K02SF1XKPRMXDCACJ05WNT8T
       responses:
         '200':
-          description: The requested TODO item
+          description: TODO item details
           headers:
             X-RateLimit-Limit:
               description: The number of allowed requests in the current period
@@ -115,90 +393,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Todo'
-        '404':
-          description: TODO item not found
-          headers:
-            X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
-    put:
-      summary: Update a TODO item by ID
-      operationId: updateTodoById
-      tags:
-        - todo
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            maxLength: 36
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TodoUpdate'
-      responses:
-        '200':
-          description: The updated TODO item
-          headers:
-            X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 10
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Todo'
-        '404':
-          description: TODO item not found
-          headers:
-            X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000
-    delete:
-      summary: Delete a TODO item by ID
-      operationId: deleteTodoById
-      tags:
-        - todo
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            maxLength: 36
-            format: uuid
-      responses:
-        '204':
-          description: TODO item deleted
-          headers:
-            X-RateLimit-Limit:
-              description: The number of allowed requests in the current period
-              schema:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 10
-        '404':
-          description: TODO item not found
+        '4XX':
+          description: Problem with the request
           headers:
             X-RateLimit-Limit:
               description: The number of allowed requests in the current period
@@ -210,59 +406,144 @@ paths:
 
 components:
   schemas:
-    Todo:
+    Project:
       type: object
+      description: Object representing a TODO project
       properties:
         id:
           type: string
-          example: '01K02G135R5F222VH8GHNXHVGW'
-          maxLength: 36
+          example: "01K02QJNKNBXE821CH1ZFTATAV"
+          maxLength: 26
+          format: ulid
+        name:
+          type: string
+          example: "Shopping lists"
+          maxLength: 64
+          pattern: .*
+        description:
+          type: string
+          example: "All the lists that need to do with shopping."
+          maxLength: 64
+          pattern: .*
+      required:
+        - id
+        - name
+    ProjectCreate:
+      type: object
+      description: Object used to create a new TODO project
+      properties:
+        name:
+          type: string
+          example: "Shopping lists"
+          maxLength: 64
+          pattern: .*
+        description:
+          type: string
+          example: "All the lists that need to do with shopping."
+          maxLength: 255
+          pattern: .*
+      required:
+        - name
+    List:
+      type: object
+      description: Object representing a TODO list
+      properties:
+        id:
+          type: string
+          example: "01K02QGENAEEM22FBW1P86S5YN"
+          maxLength: 26
+          format: ulid
+        projectId:
+          type: string
+          example: "01K02QBK5K1PBQ7TP755AFWJWQ"
+          maxLength: 26
+          format: ulid
+        name:
+          type: string
+          example: "Shopping list"
+          maxLength: 64
+          pattern: .*
+        description:
+          type: string
+          example: "Shopping list for Mom"
+          maxLength: 255
+          pattern: .*
+      required:
+        - id
+        - projectId
+        - name
+    ListCreate:
+      type: object
+      description: Object used to create a new TODO list
+      properties:
+        name:
+          type: string
+          example: "Shopping list"
+          maxLength: 64
+          pattern: .*
+        description:
+          type: string
+          example: "Shopping list for Mom"
+          maxLength: 255
+          pattern: .*
+      required:
+        - name
+    Todo:
+      type: object
+      description: Object representing a TODO item
+      properties:
+        id:
+          type: string
+          example: "01K02QGZD4JQPT6NYQNG73TV52"
+          maxLength: 26
+          format: ulid
+        listId:
+          type: string
+          example: "01K02QHC275FZX8AQ33EZX835K"
+          maxLength: 26
           format: ulid
         title:
           type: string
-          example: 'Buy groceries'
+          example: "Milk"
           maxLength: 64
-          pattern: "^[a-zA-Z0-9_-]+$"
+          pattern: .*
         description:
           type: string
-          example: 'Milk, Bread, Cheese'
+          example: "Bio, discounted"
           maxLength: 255
-          pattern: "^[a-zA-Z0-9_-]+$"
+          pattern: .*
         completed:
           type: boolean
-          example: false
+          example: true
       required:
         - id
+        - listId
         - title
         - completed
     TodoCreate:
       type: object
+      description: Object used to create a new todo item
       properties:
         title:
           type: string
+          example: "Milk"
           maxLength: 64
-          pattern: "^[a-zA-Z0-9_-]+$"
+          pattern: .*
         description:
           type: string
+          example: "Milk, Bread, Cheese"
           maxLength: 255
-          pattern: "^[a-zA-Z0-9_-]+$"
+          pattern: .*
+        completed:
+          type: boolean
+          example: true
       required:
         - title
-    TodoUpdate:
-      type: object
-      properties:
-        title:
-          type: string
-          maxLength: 64
-          pattern: "^[a-zA-Z0-9_-]+$"
-        description:
-          type: string
-          maxLength: 255
-          pattern: "^[a-zA-Z0-9_-]+$"
-        completed:
-          type: boolean 
+        - completed
+
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
       in: header
       name: X-API-Key
+      description: This is the main API security scheme
