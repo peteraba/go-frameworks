@@ -1,7 +1,8 @@
 openapi: 3.0.3
 
 tags:
-  - todo
+  - name: "todo"
+    description: "Operations related to TODO items"
 
 info:
   title: TODO Application API
@@ -15,17 +16,29 @@ paths:
   /todos:
     get:
       summary: List all TODO items
+      operationId: listTodos
+      security:
+        - ApiKeyAuth: []
       responses:
         '200':
           description: A list of TODO items
+          headers:
+            X-RateLimit-Limit:
+              description: The number of allowed requests in the current period
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
+                maxItems: 100
                 items:
                   $ref: '#/components/schemas/Todo'
     post:
       summary: Create a new TODO item
+      operationId: createTodo
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -42,12 +55,17 @@ paths:
   /todos/{id}:
     get:
       summary: Get a TODO item by ID
+      operationId: getTodoById
+      security:
+        - ApiKeyAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
+            maxLength: 36
+            format: uuid
       responses:
         '200':
           description: The requested TODO item
@@ -59,12 +77,17 @@ paths:
           description: TODO item not found
     put:
       summary: Update a TODO item by ID
+      operationId: updateTodoById
+      security:
+        - ApiKeyAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
+            maxLength: 36
+            format: uuid
       requestBody:
         required: true
         content:
@@ -82,12 +105,17 @@ paths:
           description: TODO item not found
     delete:
       summary: Delete a TODO item by ID
+      operationId: deleteTodoById
+      security:
+        - ApiKeyAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
+            maxLength: 36
+            format: uuid
       responses:
         '204':
           description: TODO item deleted
@@ -105,9 +133,13 @@ components:
         title:
           type: string
           example: 'Buy groceries'
+          maxLength: 64
+          pattern: "^[a-zA-Z0-9_-]+$"
         description:
           type: string
           example: 'Milk, Bread, Cheese'
+          maxLength: 255
+          pattern: "^[a-zA-Z0-9_-]+$"
         completed:
           type: boolean
           example: false
@@ -120,8 +152,12 @@ components:
       properties:
         title:
           type: string
+          maxLength: 64
+          pattern: "^[a-zA-Z0-9_-]+$"
         description:
           type: string
+          maxLength: 255
+          pattern: "^[a-zA-Z0-9_-]+$"
       required:
         - title
     TodoUpdate:
@@ -129,7 +165,11 @@ components:
       properties:
         title:
           type: string
+          maxLength: 64
+          pattern: "^[a-zA-Z0-9_-]+$"
         description:
           type: string
+          maxLength: 255
+          pattern: "^[a-zA-Z0-9_-]+$"
         completed:
           type: boolean 
