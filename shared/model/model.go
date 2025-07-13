@@ -5,8 +5,8 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-func NewFaker() *gofakeit.Faker {
-	gofakeit.AddFuncLookup("friendname", gofakeit.Info{
+func InitFaker() {
+	gofakeit.AddFuncLookup("ulid", gofakeit.Info{
 		Category:    "custom",
 		Description: "ULID",
 		Example:     "01K02G50QEGXXK5ZBGHDNPKYHY",
@@ -15,8 +15,4 @@ func NewFaker() *gofakeit.Faker {
 			return ulid.Make(), nil
 		},
 	})
-
-	faker := gofakeit.New(0)
-
-	return faker
 }
