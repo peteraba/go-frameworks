@@ -1,0 +1,135 @@
+openapi: 3.0.3
+
+tags:
+  - todo
+
+info:
+  title: TODO Application API
+  version: 1.0.0
+  description: API for managing TODO items.
+
+servers:
+  - url: http://localhost:8080/api
+
+paths:
+  /todos:
+    get:
+      summary: List all TODO items
+      responses:
+        '200':
+          description: A list of TODO items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+    post:
+      summary: Create a new TODO item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoCreate'
+      responses:
+        '201':
+          description: The created TODO item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+  /todos/{id}:
+    get:
+      summary: Get a TODO item by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested TODO item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '404':
+          description: TODO item not found
+    put:
+      summary: Update a TODO item by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoUpdate'
+      responses:
+        '200':
+          description: The updated TODO item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '404':
+          description: TODO item not found
+    delete:
+      summary: Delete a TODO item by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: TODO item deleted
+        '404':
+          description: TODO item not found
+
+components:
+  schemas:
+    Todo:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '1'
+        title:
+          type: string
+          example: 'Buy groceries'
+        description:
+          type: string
+          example: 'Milk, Bread, Cheese'
+        completed:
+          type: boolean
+          example: false
+      required:
+        - id
+        - title
+        - completed
+    TodoCreate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+    TodoUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        completed:
+          type: boolean 
