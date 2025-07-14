@@ -7,38 +7,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRandomTodo(t *testing.T) {
-	got1 := model.RandomTodo()
-	got2 := model.RandomTodo()
+func TestRandomProject(t *testing.T) {
+	got1 := model.RandomProject()
+	got2 := model.RandomProject()
 
 	assert.NotEmpty(t, got1.ID)
-	assert.NotEmpty(t, got1.Title)
+	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
-	assert.NotEqual(t, got1.Title, got2.Title)
+	assert.NotEqual(t, got1.ID, got2.ID)
+	assert.NotEqual(t, got1.Name, got2.Name)
 	assert.NotEqual(t, got1.Description, got2.Description)
 	assert.NoError(t, got1.Validate())
 	assert.NoError(t, got2.Validate())
 }
 
-func TestRandomTodoCreate(t *testing.T) {
-	got1 := model.RandomTodoCreate()
-	got2 := model.RandomTodoCreate()
+func TestRandomProjectCreate(t *testing.T) {
+	got1 := model.RandomProjectCreate()
+	got2 := model.RandomProjectCreate()
 
-	assert.NotEmpty(t, got1.Title)
+	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
-	assert.NotEqual(t, got1.Title, got2.Title)
+	assert.NotEqual(t, got1.Name, got2.Name)
 	assert.NotEqual(t, got1.Description, got2.Description)
 	assert.NoError(t, got1.Validate())
 	assert.NoError(t, got2.Validate())
 }
 
-func TestRandomTodoUpdate(t *testing.T) {
-	got1 := model.RandomTodoUpdate()
-	got2 := model.RandomTodoUpdate()
+func TestRandomProjectUpdate(t *testing.T) {
+	got1 := model.RandomProjectUpdate()
+	got2 := model.RandomProjectUpdate()
 
-	assert.NotEmpty(t, got1.Title)
+	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
-	assert.NotEqual(t, got1.Title, got2.Title)
+	assert.NotEqual(t, got1.Name, got2.Name)
 	assert.NotEqual(t, got1.Description, got2.Description)
 	assert.NoError(t, got1.Validate())
 	assert.NoError(t, got2.Validate())
