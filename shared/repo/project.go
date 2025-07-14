@@ -2,6 +2,8 @@ package repo
 
 import (
 	"errors"
+	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/oklog/ulid/v2"
@@ -16,9 +18,14 @@ type ProjectRepo interface {
 	List() ([]model.Project, error)
 }
 
+// ErrProjectNotFound
+var ErrProjectNotFound = errors.New("project not found")
+
 type InMemoryProjectRepo struct {
 	mu       sync.RWMutex
 	projects map[string]model.Project
+	keys     []string
+	dirty    bool
 }
 
 func NewInMemoryProjectRepo() *InMemoryProjectRepo {
@@ -38,10 +45,12 @@ func (r *InMemoryProjectRepo) Create(project model.ProjectCreate) (model.Project
 	}
 
 	if _, exists := r.projects[p.ID]; exists {
-		return model.Project{}, errors.New("project already exists")
+		return model.Project{}, fmt.Errorf("not found: %s, err: %w", p.ID, ErrProjectNotFound)
 	}
 
 	r.projects[p.ID] = p
+	r.keys = append(r.keys, p.ID)
+	r.dirty = true
 
 	return p, nil
 }
@@ -52,7 +61,7 @@ func (r *InMemoryProjectRepo) GetByID(id string) (model.Project, error) {
 
 	project, exists := r.projects[id]
 	if !exists {
-		return model.Project{}, errors.New("project not found")
+		return model.Project{}, fmt.Errorf("not found: %s, err: %w", id, ErrProjectNotFound)
 	}
 
 	return project, nil
@@ -64,7 +73,7 @@ func (r *InMemoryProjectRepo) Update(id string, update model.ProjectUpdate) (mod
 
 	project, exists := r.projects[id]
 	if !exists {
-		return model.Project{}, errors.New("project not found")
+		return model.Project{}, fmt.Errorf("not found: %s, err: %w", id, ErrProjectNotFound)
 	}
 
 	if update.Name != "" {
@@ -84,7 +93,7 @@ func (r *InMemoryProjectRepo) Delete(id string) error {
 	defer r.mu.Unlock()
 
 	if _, exists := r.projects[id]; !exists {
-		return errors.New("project not found")
+		return fmt.Errorf("not found: %s, err: %w", id, ErrProjectNotFound)
 	}
 
 	delete(r.projects, id)
@@ -96,9 +105,30 @@ func (r *InMemoryProjectRepo) List() ([]model.Project, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	projects := make([]model.Project, 0, len(r.projects))
-	for _, project := range r.projects {
-		projects = append(projects, project)
+	if r.dirty {
+		keys := make([]string, 0, len(r.projects))
+		for k := range r.projects {
+			keys = append(keys, k)
+		}
+
+		sort.Strings(keys)
+
+		r.dirty = false
+		r.keys = keys
+	}
+
+	l := len(r.projects)
+	if l > maxListLength {
+		l = maxListLength
+	}
+
+	projects := make([]model.Project, 0, l)
+	for i, key := range r.keys {
+		if i > l {
+			break
+		}
+
+		projects = append(projects, r.projects[key])
 	}
 
 	return projects, nil
@@ -109,5 +139,6 @@ func (r *InMemoryProjectRepo) Has(id string) bool {
 	defer r.mu.RUnlock()
 
 	_, exists := r.projects[id]
+
 	return exists
 }

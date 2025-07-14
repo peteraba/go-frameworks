@@ -2,6 +2,8 @@ package repo
 
 import (
 	"errors"
+	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/oklog/ulid/v2"
@@ -16,9 +18,14 @@ type UserRepo interface {
 	List() ([]model.User, error)
 }
 
+// ErrUserNotFound
+var ErrUserNotFound = errors.New("user not found")
+
 type InMemoryUserRepo struct {
 	mu    sync.RWMutex
 	users map[string]model.User
+	keys  []string
+	dirty bool
 }
 
 func NewInMemoryUserRepo() *InMemoryUserRepo {
@@ -27,21 +34,23 @@ func NewInMemoryUserRepo() *InMemoryUserRepo {
 	}
 }
 
-func (r *InMemoryUserRepo) Create(user model.UserCreate) (model.User, error) {
+func (r *InMemoryUserRepo) Create(uc model.UserCreate, password []byte) (model.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	u := model.User{
-		ID:    ulid.Make().String(),
-		Name:  user.Name,
-		Email: user.Email,
+		ID:       ulid.Make().String(),
+		Name:     uc.Name,
+		Email:    uc.Email,
+		Groups:   uc.Groups,
+		Password: password,
 	}
 
-	if _, exists := r.users[u.ID]; exists {
-		return model.User{}, errors.New("user already exists")
-	}
+	u.ID = ulid.Make().String()
 
 	r.users[u.ID] = u
+	r.keys = append(r.keys, u.ID)
+	r.dirty = true
 
 	return u, nil
 }
@@ -52,7 +61,7 @@ func (r *InMemoryUserRepo) GetByID(id string) (model.User, error) {
 
 	user, exists := r.users[id]
 	if !exists {
-		return model.User{}, errors.New("user not found")
+		return model.User{}, fmt.Errorf("not found: %s, err: %w", id, ErrUserNotFound)
 	}
 
 	return user, nil
@@ -64,7 +73,7 @@ func (r *InMemoryUserRepo) Update(id string, update model.UserUpdate) (model.Use
 
 	user, exists := r.users[id]
 	if !exists {
-		return model.User{}, errors.New("user not found")
+		return model.User{}, fmt.Errorf("not found: %s, err: %w", id, ErrUserNotFound)
 	}
 
 	if update.Name != "" {
@@ -79,12 +88,28 @@ func (r *InMemoryUserRepo) Update(id string, update model.UserUpdate) (model.Use
 	return user, nil
 }
 
+func (r *InMemoryUserRepo) UpdatePassword(id string, password []byte) (model.User, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, exists := r.users[id]
+	if !exists {
+		return model.User{}, fmt.Errorf("not found: %s, err: %w", id, ErrUserNotFound)
+	}
+
+	user.Password = password
+
+	r.users[id] = user
+
+	return user, nil
+}
+
 func (r *InMemoryUserRepo) Delete(id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	if _, exists := r.users[id]; !exists {
-		return errors.New("user not found")
+		return fmt.Errorf("not found: %s, err: %w", id, ErrUserNotFound)
 	}
 
 	delete(r.users, id)
@@ -96,9 +121,30 @@ func (r *InMemoryUserRepo) List() ([]model.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	users := make([]model.User, 0, len(r.users))
-	for _, user := range r.users {
-		users = append(users, user)
+	if r.dirty {
+		keys := make([]string, 0, len(r.users))
+		for k := range r.users {
+			keys = append(keys, k)
+		}
+
+		sort.Strings(keys)
+
+		r.dirty = false
+		r.keys = keys
+	}
+
+	l := len(r.users)
+	if l > maxListLength {
+		l = maxListLength
+	}
+
+	users := make([]model.User, 0, l)
+	for i, key := range r.keys {
+		if i > l {
+			break
+		}
+
+		users = append(users, r.users[key])
 	}
 
 	return users, nil

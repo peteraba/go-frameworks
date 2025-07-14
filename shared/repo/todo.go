@@ -2,6 +2,8 @@ package repo
 
 import (
 	"errors"
+	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/oklog/ulid/v2"
@@ -16,9 +18,14 @@ type TodoRepo interface {
 	List() ([]model.Todo, error)
 }
 
+// ErrTodoNotFound
+var ErrTodoNotFound = errors.New("todo item not found")
+
 type InMemoryTodoRepo struct {
 	mu    sync.RWMutex
 	todos map[string]model.Todo
+	keys  []string
+	dirty bool
 }
 
 func NewInMemoryTodoRepo() *InMemoryTodoRepo {
@@ -39,11 +46,8 @@ func (r *InMemoryTodoRepo) Create(todo model.TodoCreate) (model.Todo, error) {
 		Completed:   todo.Completed,
 	}
 
-	if _, exists := r.todos[t.ID]; exists {
-		return model.Todo{}, errors.New("todo already exists")
-	}
-
 	r.todos[t.ID] = t
+	r.keys = append(r.keys, t.ID)
 
 	return t, nil
 }
@@ -53,6 +57,7 @@ func (r *InMemoryTodoRepo) Has(id string) bool {
 	defer r.mu.RUnlock()
 
 	_, exists := r.todos[id]
+
 	return exists
 }
 
@@ -62,7 +67,7 @@ func (r *InMemoryTodoRepo) GetByID(id string) (model.Todo, error) {
 
 	todo, exists := r.todos[id]
 	if !exists {
-		return model.Todo{}, errors.New("todo not found")
+		return model.Todo{}, fmt.Errorf("not found: %s, err: %w", id, ErrTodoNotFound)
 	}
 
 	return todo, nil
@@ -74,7 +79,7 @@ func (r *InMemoryTodoRepo) Update(id string, update model.TodoUpdate) (model.Tod
 
 	todo, exists := r.todos[id]
 	if !exists {
-		return model.Todo{}, errors.New("todo not found")
+		return model.Todo{}, fmt.Errorf("not found: %s, err: %w", id, ErrTodoNotFound)
 	}
 
 	if update.Title != "" {
@@ -97,7 +102,7 @@ func (r *InMemoryTodoRepo) Delete(id string) error {
 	defer r.mu.Unlock()
 
 	if _, exists := r.todos[id]; !exists {
-		return errors.New("todo not found")
+		return fmt.Errorf("not found: %s, err: %w", id, ErrTodoNotFound)
 	}
 
 	delete(r.todos, id)
@@ -109,9 +114,30 @@ func (r *InMemoryTodoRepo) List() ([]model.Todo, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	todos := make([]model.Todo, 0, len(r.todos))
-	for _, todo := range r.todos {
-		todos = append(todos, todo)
+	if r.dirty {
+		keys := make([]string, 0, len(r.todos))
+		for k := range r.todos {
+			keys = append(keys, k)
+		}
+
+		sort.Strings(keys)
+
+		r.dirty = false
+		r.keys = keys
+	}
+
+	l := len(r.todos)
+	if l > maxListLength {
+		l = maxListLength
+	}
+
+	todos := make([]model.Todo, 0, l)
+	for i, key := range r.keys {
+		if i > l {
+			break
+		}
+
+		todos = append(todos, r.todos[key])
 	}
 
 	return todos, nil

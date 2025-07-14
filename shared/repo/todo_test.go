@@ -1,15 +1,16 @@
-package repo
+package repo_test
 
 import (
 	"testing"
 
 	"github.com/peteraba/go-frameworks/shared/model"
+	"github.com/peteraba/go-frameworks/shared/repo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInMemoryTodoRepo_Create(t *testing.T) {
-	repo := NewInMemoryTodoRepo()
+	r := repo.NewInMemoryTodoRepo()
 
 	t.Run("successful creation", func(t *testing.T) {
 		// prepare
@@ -17,7 +18,7 @@ func TestInMemoryTodoRepo_Create(t *testing.T) {
 		tc.ListID = "list-1"
 
 		// execute
-		todo, err := repo.Create(tc)
+		todo, err := r.Create(tc)
 
 		// verify
 		assert.NoError(t, err)
@@ -30,15 +31,15 @@ func TestInMemoryTodoRepo_Create(t *testing.T) {
 }
 
 func TestInMemoryTodoRepo_GetByID(t *testing.T) {
-	repo := NewInMemoryTodoRepo()
+	r := repo.NewInMemoryTodoRepo()
 
 	t.Run("existing todo", func(t *testing.T) {
 		// prepare
 		tc := model.RandomTodoCreate()
 		tc.ListID = "list-1"
-		todo, err := repo.Create(tc)
+		todo, err := r.Create(tc)
 		require.NoError(t, err)
-		retrieved, err := repo.GetByID(todo.ID)
+		retrieved, err := r.GetByID(todo.ID)
 
 		// verify
 		require.NoError(t, err)
@@ -48,22 +49,22 @@ func TestInMemoryTodoRepo_GetByID(t *testing.T) {
 	})
 
 	t.Run("non-existing todo", func(t *testing.T) {
-		_, err := repo.GetByID("non-existing-id")
+		_, err := r.GetByID("non-existing-id")
 
 		// verify
 		assert.Error(t, err)
-		assert.Equal(t, "todo not found", err.Error())
+		assert.ErrorIs(t, err, repo.ErrTodoNotFound)
 	})
 }
 
 func TestInMemoryTodoRepo_Update(t *testing.T) {
-	repo := NewInMemoryTodoRepo()
+	r := repo.NewInMemoryTodoRepo()
 
 	t.Run("successful update", func(t *testing.T) {
 		// prepare
 		tc := model.RandomTodoCreate()
 		tc.ListID = "list-1"
-		todo, err := repo.Create(tc)
+		todo, err := r.Create(tc)
 		require.NoError(t, err)
 		update := model.TodoUpdate{
 			Title:       "Updated Title",
@@ -72,7 +73,7 @@ func TestInMemoryTodoRepo_Update(t *testing.T) {
 		}
 
 		// execute
-		updated, err := repo.Update(todo.ID, update)
+		updated, err := r.Update(todo.ID, update)
 
 		// verify
 		assert.NoError(t, err)
@@ -85,14 +86,14 @@ func TestInMemoryTodoRepo_Update(t *testing.T) {
 		// prepare
 		tc := model.RandomTodoCreate()
 		tc.ListID = "list-1"
-		todo, err := repo.Create(tc)
+		todo, err := r.Create(tc)
 		require.NoError(t, err)
 		update := model.TodoUpdate{
 			Title: "Only Title Updated",
 		}
 
 		// execute
-		updated, err := repo.Update(todo.ID, update)
+		updated, err := r.Update(todo.ID, update)
 
 		// verify
 		assert.NoError(t, err)
@@ -105,23 +106,23 @@ func TestInMemoryTodoRepo_Update(t *testing.T) {
 		update := model.TodoUpdate{Title: "Updated Title"}
 
 		// execute
-		_, err := repo.Update("non-existing-id", update)
+		_, err := r.Update("non-existing-id", update)
 
 		// verify
 		assert.Error(t, err)
-		assert.Equal(t, "todo not found", err.Error())
+		assert.ErrorIs(t, err, repo.ErrTodoNotFound)
 	})
 
 	t.Run("empty update fields are ignored", func(t *testing.T) {
 		// prepare
 		tc := model.RandomTodoCreate()
 		tc.ListID = "list-1"
-		todo, err := repo.Create(tc)
+		todo, err := r.Create(tc)
 		require.NoError(t, err)
 		update := model.TodoUpdate{}
 
 		// execute
-		updated, err := repo.Update(todo.ID, update)
+		updated, err := r.Update(todo.ID, update)
 
 		// verify
 		assert.NoError(t, err)
@@ -132,17 +133,17 @@ func TestInMemoryTodoRepo_Update(t *testing.T) {
 }
 
 func TestInMemoryTodoRepo_Delete(t *testing.T) {
-	repo := NewInMemoryTodoRepo()
+	r := repo.NewInMemoryTodoRepo()
 
 	t.Run("successful deletion", func(t *testing.T) {
 		// prepare
 		tc := model.RandomTodoCreate()
 		tc.ListID = "list-1"
-		todo, err := repo.Create(tc)
+		todo, err := r.Create(tc)
 		require.NoError(t, err)
 
 		// execute
-		err = repo.Delete(todo.ID)
+		err = r.Delete(todo.ID)
 
 		// verify
 		assert.NoError(t, err)
@@ -150,20 +151,20 @@ func TestInMemoryTodoRepo_Delete(t *testing.T) {
 
 	t.Run("non-existing todo", func(t *testing.T) {
 		// execute
-		err := repo.Delete("non-existing-id")
+		err := r.Delete("non-existing-id")
 
 		// verify
 		assert.Error(t, err)
-		assert.Equal(t, "todo not found", err.Error())
+		assert.ErrorIs(t, err, repo.ErrTodoNotFound)
 	})
 }
 
 func TestInMemoryTodoRepo_List(t *testing.T) {
-	repo := NewInMemoryTodoRepo()
+	r := repo.NewInMemoryTodoRepo()
 
 	t.Run("empty repo", func(t *testing.T) {
 		// execute
-		todos, err := repo.List()
+		todos, err := r.List()
 
 		// verify
 		assert.NoError(t, err)
@@ -177,16 +178,16 @@ func TestInMemoryTodoRepo_List(t *testing.T) {
 		tc1.ListID = "list-1"
 		tc2 := model.RandomTodoCreate()
 		tc2.ListID = "list-1"
-		todo1, _ := repo.Create(tc1)
-		todo2, _ := repo.Create(tc2)
+		todo1, _ := r.Create(tc1)
+		todo2, _ := r.Create(tc2)
 
 		// execute
-		todos, err := repo.List()
+		todos, err := r.List()
 
 		// verify
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(todos))
-		assert.True(t, repo.Has(todo1.ID))
-		assert.True(t, repo.Has(todo2.ID))
+		assert.True(t, r.Has(todo1.ID))
+		assert.True(t, r.Has(todo2.ID))
 	})
 }

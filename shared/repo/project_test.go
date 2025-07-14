@@ -1,22 +1,23 @@
-package repo
+package repo_test
 
 import (
 	"testing"
 
 	"github.com/peteraba/go-frameworks/shared/model"
+	"github.com/peteraba/go-frameworks/shared/repo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInMemoryProjectRepo_Create(t *testing.T) {
-	repo := NewInMemoryProjectRepo()
+	r := repo.NewInMemoryProjectRepo()
 
 	t.Run("successful creation", func(t *testing.T) {
 		// prepare
 		pc := model.RandomProjectCreate()
 
 		// execute
-		project, err := repo.Create(pc)
+		project, err := r.Create(pc)
 
 		// verify
 		require.NoError(t, err)
@@ -27,16 +28,16 @@ func TestInMemoryProjectRepo_Create(t *testing.T) {
 }
 
 func TestInMemoryProjectRepo_GetByID(t *testing.T) {
-	repo := NewInMemoryProjectRepo()
+	r := repo.NewInMemoryProjectRepo()
 
 	t.Run("existing project", func(t *testing.T) {
 		// prepare
 		pc := model.RandomProjectCreate()
-		project, err := repo.Create(pc)
+		project, err := r.Create(pc)
 		require.NoError(t, err)
 
 		// execute
-		retrieved, err := repo.GetByID(project.ID)
+		retrieved, err := r.GetByID(project.ID)
 
 		// verify
 		require.NoError(t, err)
@@ -45,21 +46,21 @@ func TestInMemoryProjectRepo_GetByID(t *testing.T) {
 
 	t.Run("non-existing project", func(t *testing.T) {
 		// execute
-		_, err := repo.GetByID("non-existing-id")
+		_, err := r.GetByID("non-existing-id")
 
 		// verify
 		assert.Error(t, err)
-		assert.Equal(t, "project not found", err.Error())
+		assert.ErrorIs(t, err, repo.ErrProjectNotFound)
 	})
 }
 
 func TestInMemoryProjectRepo_Update(t *testing.T) {
-	repo := NewInMemoryProjectRepo()
+	r := repo.NewInMemoryProjectRepo()
 
 	t.Run("successful update", func(t *testing.T) {
 		// prepare
 		pc := model.RandomProjectCreate()
-		project, err := repo.Create(pc)
+		project, err := r.Create(pc)
 		require.NoError(t, err)
 		update := model.ProjectUpdate{
 			Name:        "Updated Name",
@@ -67,7 +68,7 @@ func TestInMemoryProjectRepo_Update(t *testing.T) {
 		}
 
 		// execute
-		updated, err := repo.Update(project.ID, update)
+		updated, err := r.Update(project.ID, update)
 
 		// verify
 		assert.NoError(t, err)
@@ -79,14 +80,14 @@ func TestInMemoryProjectRepo_Update(t *testing.T) {
 	t.Run("partial update", func(t *testing.T) {
 		// prepare
 		pc := model.RandomProjectCreate()
-		project, err := repo.Create(pc)
+		project, err := r.Create(pc)
 		require.NoError(t, err)
 		update := model.ProjectUpdate{
 			Name: "Only Name Updated",
 		}
 
 		// execute
-		updated, err := repo.Update(project.ID, update)
+		updated, err := r.Update(project.ID, update)
 
 		// verify
 		assert.NoError(t, err)
@@ -99,22 +100,22 @@ func TestInMemoryProjectRepo_Update(t *testing.T) {
 		update := model.ProjectUpdate{Name: "Updated Name"}
 
 		// execute
-		_, err := repo.Update("non-existing-id", update)
+		_, err := r.Update("non-existing-id", update)
 
 		// verify
 		assert.Error(t, err)
-		assert.Equal(t, "project not found", err.Error())
+		assert.ErrorIs(t, err, repo.ErrProjectNotFound)
 	})
 
 	t.Run("empty update fields are ignored", func(t *testing.T) {
 		// prepare
 		pc := model.RandomProjectCreate()
-		project, err := repo.Create(pc)
+		project, err := r.Create(pc)
 		require.NoError(t, err)
 		update := model.ProjectUpdate{}
 
 		// execute
-		updated, err := repo.Update(project.ID, update)
+		updated, err := r.Update(project.ID, update)
 
 		// verify
 		assert.NoError(t, err)
@@ -124,16 +125,16 @@ func TestInMemoryProjectRepo_Update(t *testing.T) {
 }
 
 func TestInMemoryProjectRepo_Delete(t *testing.T) {
-	repo := NewInMemoryProjectRepo()
+	r := repo.NewInMemoryProjectRepo()
 
 	t.Run("successful deletion", func(t *testing.T) {
 		// prepare
 		pc := model.RandomProjectCreate()
-		project, err := repo.Create(pc)
+		project, err := r.Create(pc)
 		require.NoError(t, err)
 
 		// execute
-		err = repo.Delete(project.ID)
+		err = r.Delete(project.ID)
 
 		// verify
 		assert.NoError(t, err)
@@ -141,20 +142,20 @@ func TestInMemoryProjectRepo_Delete(t *testing.T) {
 
 	t.Run("non-existing project", func(t *testing.T) {
 		// execute
-		err := repo.Delete("non-existing-id")
+		err := r.Delete("non-existing-id")
 
 		// verify
 		assert.Error(t, err)
-		assert.Equal(t, "project not found", err.Error())
+		assert.ErrorIs(t, err, repo.ErrProjectNotFound)
 	})
 }
 
 func TestInMemoryProjectRepo_List(t *testing.T) {
-	repo := NewInMemoryProjectRepo()
+	r := repo.NewInMemoryProjectRepo()
 
 	t.Run("empty repo", func(t *testing.T) {
 		// execute
-		projects, err := repo.List()
+		projects, err := r.List()
 
 		// verify
 		assert.NoError(t, err)
@@ -166,16 +167,16 @@ func TestInMemoryProjectRepo_List(t *testing.T) {
 		// prepare
 		pc1 := model.RandomProjectCreate()
 		pc2 := model.RandomProjectCreate()
-		project1, _ := repo.Create(pc1)
-		project2, _ := repo.Create(pc2)
+		project1, _ := r.Create(pc1)
+		project2, _ := r.Create(pc2)
 
 		// execute
-		projects, err := repo.List()
+		projects, err := r.List()
 
 		// verify
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(projects))
-		assert.True(t, repo.Has(project1.ID))
-		assert.True(t, repo.Has(project2.ID))
+		assert.True(t, r.Has(project1.ID))
+		assert.True(t, r.Has(project2.ID))
 	})
 }

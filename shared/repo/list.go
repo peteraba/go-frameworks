@@ -2,6 +2,7 @@ package repo
 
 import (
 	"errors"
+	"sort"
 	"sync"
 
 	"github.com/oklog/ulid/v2"
@@ -19,6 +20,8 @@ type ListRepo interface {
 type InMemoryListRepo struct {
 	mu    sync.RWMutex
 	lists map[string]model.List
+	keys  []string
+	dirty bool
 }
 
 func NewInMemoryListRepo() *InMemoryListRepo {
@@ -43,6 +46,8 @@ func (r *InMemoryListRepo) Create(list model.ListCreate) (model.List, error) {
 	}
 
 	r.lists[c.ID] = c
+	r.keys = append(r.keys, c.ID)
+	r.dirty = false
 
 	return c, nil
 }
@@ -106,9 +111,30 @@ func (r *InMemoryListRepo) List() ([]model.List, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	lists := make([]model.List, 0, len(r.lists))
-	for _, list := range r.lists {
-		lists = append(lists, list)
+	if r.dirty {
+		keys := make([]string, 0, len(r.lists))
+		for k := range r.lists {
+			keys = append(keys, k)
+		}
+
+		sort.Strings(keys)
+
+		r.dirty = false
+		r.keys = keys
+	}
+
+	l := len(r.lists)
+	if l > maxListLength {
+		l = maxListLength
+	}
+
+	lists := make([]model.List, 0, l)
+	for i, key := range r.keys {
+		if i > l {
+			break
+		}
+
+		lists = append(lists, r.lists[key])
 	}
 
 	return lists, nil

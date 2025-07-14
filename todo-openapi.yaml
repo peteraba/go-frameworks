@@ -9,8 +9,6 @@ tags:
     description: "Operations related to TODO items"
   - name: "user"
     description: "Operations related to users"
-  - name: "authgroup"
-    description: "Operations related to authorization groups"
 
 info:
   title: TODO Application API
@@ -519,83 +517,17 @@ paths:
         '204':
           description: User deleted
 
-  /auth-groups:
-    get:
-      summary: List all authorization groups
-      operationId: listAuthGroups
-      tags:
-        - authgroup
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '200':
-          description: A list of authorization groups
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AuthGroup'
-              example:
-              - id: 01K04RA2747ZWVFR2ZGBD3BNVB
-                name: admin
-                users: ['pabazsolt', 'zmueller']
-    post:
-      summary: Create a new authorization group
-      operationId: createAuthGroup
-      tags:
-        - authgroup
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        description: Object used to create a new authorization group
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthGroupCreate'
-      responses:
-        '201':
-          description: Authorization group created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthGroup'
-
-  /auth-groups/{authGroupId}:
-    get:
-      summary: Get an authorization group by ID
-      operationId: getAuthGroup
-      tags:
-        - authgroup
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: authGroupId
-          description: The id of the authorization group
-          in: path
-          required: true
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
-      responses:
-        '200':
-          description: Authorization group details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthGroup'
+  /users/{userId}/passwords:
     put:
-      summary: Update an authorization group
-      operationId: updateAuthGroup
+      summary: Update a user password
+      operationId: updateUserPassword
       tags:
-        - authgroup
+        - user
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: authGroupId
-          description: The id of the authorization group
+        - name: userId
+          description: The unique identifier of the user to update
           in: path
           required: true
           schema:
@@ -604,37 +536,41 @@ paths:
             maxLength: 26
       requestBody:
         required: true
-        description: Object used to update an authorization group
+        description: Object used to update a user
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthGroupUpdate'
+              $ref: '#/components/schemas/UserPasswordUpdate'
       responses:
         '200':
-          description: Authorization group updated
+          description: User updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthGroup'
-    delete:
-      summary: Delete an authorization group
-      operationId: deleteAuthGroup
+                $ref: '#/components/schemas/User'
+
+  /logins:
+    post:
+      summary: Login a user
+      operationId: loginUser
       tags:
-        - authgroup
+        - user
       security:
         - ApiKeyAuth: []
-      parameters:
-        - name: authGroupId
-          in: path
-          required: true
-          description: The id of the authorization group
-          schema:
-            type: string
-            format: ulid
-            maxLength: 26
+      requestBody:
+        required: true
+        description: Object used to update a user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
       responses:
-        '204':
-          description: Authorization group deleted
+        '200':
+          description: User is logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
 
 components:
   headers:
@@ -934,6 +870,14 @@ components:
             type: string
             maxLength: 26
             format: ulid
+        password:
+          type: string
+          example: "etDL9kOawp0#2S"
+          format: password
+        password2:
+          type: string
+          example: "jFwHrm^cra7$dd"
+          format: password
       required:
         - name
         - email
@@ -958,40 +902,34 @@ components:
             type: string
             maxLength: 26
             format: ulid
-    AuthGroup:
+    UserLogin:
       type: object
-      description: Object representing an authorization group
-      properties:
-        id:
-          type: string
-          example: "01K02QJNKNBXE821CH1ZFTATAV"
-          maxLength: 26
-          format: ulid
-        name:
-          type: string
-          example: "admins"
-          maxLength: 64
-      required:
-        - id
-        - name
-    AuthGroupCreate:
-      type: object
-      description: Object used to create a new authorization group
+      description: Object used to log in a user
       properties:
         name:
           type: string
-          example: "admins"
+          example: "John Doe"
           maxLength: 64
-      required:
-        - name
-    AuthGroupUpdate:
-      type: object
-      description: Object used to update an authorization group
-      properties:
-        name:
+        password:
           type: string
-          example: "admins"
-          maxLength: 64
+          example: "WohO&b3#Tz9NcX"
+          format: password
+        password2:
+          type: string
+          example: "E#cu#04E7aR5Pb"
+          format: password
+    UserPasswordUpdate:
+      type: object
+      description: Object used to update a user
+      properties:
+        password:
+          type: string
+          example: "24UbUmRd8#buZ9"
+          format: password
+        password2:
+          type: string
+          example: "4$kiLIG#56QvJC"
+          format: password
 
   securitySchemes:
     ApiKeyAuth:
