@@ -7,6 +7,10 @@ tags:
     description: "Operations related to TODO lists"
   - name: "todo"
     description: "Operations related to TODO items"
+  - name: "user"
+    description: "Operations related to users"
+  - name: "authgroup"
+    description: "Operations related to authorization groups"
 
 info:
   title: TODO Application API
@@ -292,6 +296,240 @@ paths:
             X-RateLimit-Limit:
               $ref: '#/components/headers/RateLimitLimit'
 
+  /users:
+    get:
+      summary: List all users
+      operationId: listUsers
+      tags:
+        - user
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              example:
+                - id: 01K02QJNKNBXE821CH1ZFTATAV
+                  name: John Doe
+                  email: john@example.com
+    post:
+      summary: Create a new user
+      operationId: createUser
+      tags:
+        - user
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        description: Object used to update a create
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{userId}:
+    get:
+      summary: Get a user by ID
+      operationId: getUser
+      tags:
+        - user
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: userId
+          description: The unique identifier of the user to retrieve
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Update a user
+      operationId: updateUser
+      tags:
+        - user
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: userId
+          description: The unique identifier of the user to update
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+      requestBody:
+        required: true
+        description: Object used to update a user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      summary: Delete a user
+      operationId: deleteUser
+      tags:
+        - user
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: userId
+          description: The unique identifier of the user to delete
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+      responses:
+        '204':
+          description: User deleted
+
+  /auth-groups:
+    get:
+      summary: List all authorization groups
+      operationId: listAuthGroups
+      tags:
+        - authgroup
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of authorization groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuthGroup'
+              example:
+              - id: 01K04RA2747ZWVFR2ZGBD3BNVB
+                name: admin
+                users: ['pabazsolt', 'zmueller']
+    post:
+      summary: Create a new authorization group
+      operationId: createAuthGroup
+      tags:
+        - authgroup
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        description: Object used to create a new authorization group
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthGroupCreate'
+      responses:
+        '201':
+          description: Authorization group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthGroup'
+
+  /auth-groups/{authGroupId}:
+    get:
+      summary: Get an authorization group by ID
+      operationId: getAuthGroup
+      tags:
+        - authgroup
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: authGroupId
+          description: The id of the authorization group
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+      responses:
+        '200':
+          description: Authorization group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthGroup'
+    put:
+      summary: Update an authorization group
+      operationId: updateAuthGroup
+      tags:
+        - authgroup
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: authGroupId
+          description: The id of the authorization group
+          in: path
+          required: true
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+      requestBody:
+        required: true
+        description: Object used to update an authorization group
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthGroupUpdate'
+      responses:
+        '200':
+          description: Authorization group updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthGroup'
+    delete:
+      summary: Delete an authorization group
+      operationId: deleteAuthGroup
+      tags:
+        - authgroup
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: authGroupId
+          in: path
+          required: true
+          description: The id of the authorization group
+          schema:
+            type: string
+            format: ulid
+            maxLength: 26
+      responses:
+        '204':
+          description: Authorization group deleted
+
 components:
   headers:
     RateLimitLimit:
@@ -481,6 +719,117 @@ components:
       required:
         - title
         - completed
+    User:
+      type: object
+      description: Object representing a user
+      properties:
+        id:
+          type: string
+          example: "01K02QJNKNBXE821CH1ZFTATAV"
+          maxLength: 26
+          format: ulid
+        name:
+          type: string
+          example: "John Doe"
+          maxLength: 64
+        email:
+          type: string
+          example: "john@example.com"
+          format: email
+      required:
+        - id
+        - name
+        - email
+    UserCreate:
+      type: object
+      description: Object used to create a new user
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+          maxLength: 64
+        email:
+          type: string
+          example: "john@example.com"
+          format: email
+      required:
+        - name
+        - email
+    UserUpdate:
+      type: object
+      description: Object used to update a user
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+          maxLength: 64
+        email:
+          type: string
+          example: "john@example.com"
+          format: email
+    AuthGroup:
+      type: object
+      description: Object representing an authorization group
+      properties:
+        id:
+          type: string
+          example: "01K02QJNKNBXE821CH1ZFTATAV"
+          maxLength: 26
+          format: ulid
+        name:
+          type: string
+          example: "admins"
+          maxLength: 64
+        users:
+          type: array
+          example:
+            - pabazsolt
+            - zmueller
+          items:
+            type: string
+            maxLength: 26
+            format: ulid
+      required:
+        - id
+        - name
+        - users
+    AuthGroupCreate:
+      type: object
+      description: Object used to create a new authorization group
+      properties:
+        name:
+          type: string
+          example: "admins"
+          maxLength: 64
+        users:
+          type: array
+          example:
+            - pabazsolt
+            - zmueller
+          items:
+            type: string
+            maxLength: 26
+            format: ulid
+      required:
+        - name
+        - users
+    AuthGroupUpdate:
+      type: object
+      description: Object used to update an authorization group
+      properties:
+        name:
+          type: string
+          example: "admins"
+          maxLength: 64
+        users:
+          type: array
+          example:
+            - pabazsolt
+            - zmueller
+          items:
+            type: string
+            maxLength: 26
+            format: ulid
 
   securitySchemes:
     ApiKeyAuth:
