@@ -10,6 +10,8 @@ import (
 	"github.com/peteraba/go-frameworks/shared/model"
 )
 
+const maxProjectListLength = 100
+
 type ProjectRepo interface {
 	Create(project model.ProjectCreate) (model.Project, error)
 	GetByID(id string) (model.Project, error)
@@ -118,13 +120,13 @@ func (r *InMemoryProjectRepo) List() ([]model.Project, error) {
 	}
 
 	l := len(r.projects)
-	if l > maxListLength {
-		l = maxListLength
+	if l > maxProjectListLength {
+		l = maxProjectListLength
 	}
 
 	projects := make([]model.Project, 0, l)
 	for i, key := range r.keys {
-		if i > l {
+		if i >= l {
 			break
 		}
 

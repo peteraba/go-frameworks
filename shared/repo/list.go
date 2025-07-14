@@ -9,6 +9,8 @@ import (
 	"github.com/peteraba/go-frameworks/shared/model"
 )
 
+const maxListListLength = 100
+
 type ListRepo interface {
 	Create(list model.List) (model.List, error)
 	GetByID(id string) (model.List, error)
@@ -34,22 +36,22 @@ func (r *InMemoryListRepo) Create(list model.ListCreate) (model.List, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	c := model.List{
+	listModel := model.List{
 		ID:          ulid.Make().String(),
 		ProjectID:   list.ProjectID,
 		Name:        list.Name,
 		Description: list.Description,
 	}
 
-	if _, exists := r.lists[c.ID]; exists {
+	if _, exists := r.lists[listModel.ID]; exists {
 		return model.List{}, errors.New("list already exists")
 	}
 
-	r.lists[c.ID] = c
-	r.keys = append(r.keys, c.ID)
+	r.lists[listModel.ID] = listModel
+	r.keys = append(r.keys, listModel.ID)
 	r.dirty = false
 
-	return c, nil
+	return listModel, nil
 }
 
 func (r *InMemoryListRepo) Has(id string) bool {
@@ -124,13 +126,13 @@ func (r *InMemoryListRepo) List() ([]model.List, error) {
 	}
 
 	l := len(r.lists)
-	if l > maxListLength {
-		l = maxListLength
+	if l > maxListListLength {
+		l = maxListListLength
 	}
 
 	lists := make([]model.List, 0, l)
 	for i, key := range r.keys {
-		if i > l {
+		if i >= l {
 			break
 		}
 

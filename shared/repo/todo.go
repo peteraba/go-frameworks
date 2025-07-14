@@ -10,6 +10,8 @@ import (
 	"github.com/peteraba/go-frameworks/shared/model"
 )
 
+const maxTodoListLength = 1000
+
 type TodoRepo interface {
 	Create(todo model.TodoCreate) (model.Todo, error)
 	GetByID(id string) (model.Todo, error)
@@ -127,13 +129,13 @@ func (r *InMemoryTodoRepo) List() ([]model.Todo, error) {
 	}
 
 	l := len(r.todos)
-	if l > maxListLength {
-		l = maxListLength
+	if l > maxTodoListLength {
+		l = maxTodoListLength
 	}
 
 	todos := make([]model.Todo, 0, l)
 	for i, key := range r.keys {
-		if i > l {
+		if i >= l {
 			break
 		}
 

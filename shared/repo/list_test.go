@@ -14,16 +14,16 @@ func TestInMemoryListRepo_Create(t *testing.T) {
 
 	t.Run("successful creation", func(t *testing.T) {
 		// prepare
-		list := model.RandomListCreate()
+		listCreateStub := model.RandomListCreate()
 
 		// execute
-		created, err := r.Create(list)
+		created, err := r.Create(listCreateStub)
 
 		// verify
 		assert.NoError(t, err)
 
-		assert.Equal(t, list.Name, created.Name)
-		assert.Equal(t, list.Description, created.Description)
+		assert.Equal(t, listCreateStub.Name, created.Name)
+		assert.Equal(t, listCreateStub.Description, created.Description)
 		assert.True(t, r.Has(created.ID))
 	})
 }
@@ -33,22 +33,22 @@ func TestInMemoryListRepo_GetByID(t *testing.T) {
 
 	t.Run("existing list", func(t *testing.T) {
 		// prepare
-		lc := model.RandomListCreate()
+		listCreateStub := model.RandomListCreate()
 
-		list, err := r.Create(model.ListCreate{
-			ProjectID:   lc.ProjectID,
-			Name:        lc.Name,
-			Description: lc.Description,
+		listStub, err := r.Create(model.ListCreate{
+			ProjectID:   listCreateStub.ProjectID,
+			Name:        listCreateStub.Name,
+			Description: listCreateStub.Description,
 		})
 		require.NoError(t, err)
 
 		// execute
-		retrieved, err := r.GetByID(list.ID)
+		retrieved, err := r.GetByID(listStub.ID)
 
 		// verify
 		assert.NoError(t, err)
 
-		assert.Equal(t, list, retrieved)
+		assert.Equal(t, listStub, retrieved)
 	})
 
 	t.Run("non-existing list", func(t *testing.T) {
@@ -64,37 +64,37 @@ func TestInMemoryListRepo_Update(t *testing.T) {
 
 	t.Run("successful update", func(t *testing.T) {
 		// prepare
-		listToCreate := model.RandomListCreate()
-		createdList, err := r.Create(listToCreate)
+		listToCreateStub := model.RandomListCreate()
+		createdListStub, err := r.Create(listToCreateStub)
 		require.NoError(t, err)
 
-		update := model.RandomListUpdate()
+		listUpdateStub := model.RandomListUpdate()
 
 		// execute
-		updated, err := r.Update(createdList.ID, update)
+		updated, err := r.Update(createdListStub.ID, listUpdateStub)
 
 		// verify
 		assert.NoError(t, err)
-		assert.Equal(t, update.Name, updated.Name)
-		assert.Equal(t, update.Description, updated.Description)
-		assert.Equal(t, createdList.ID, updated.ID)
-		assert.Equal(t, createdList.ProjectID, updated.ProjectID)
+		assert.Equal(t, listUpdateStub.Name, updated.Name)
+		assert.Equal(t, listUpdateStub.Description, updated.Description)
+		assert.Equal(t, createdListStub.ID, updated.ID)
+		assert.Equal(t, createdListStub.ProjectID, updated.ProjectID)
 
 		// Verify the list was actually updated in the repo
 		retrieved, err := r.GetByID(updated.ID)
 		require.NoError(t, err)
-		assert.Equal(t, update.Name, retrieved.Name)
-		assert.Equal(t, update.Description, retrieved.Description)
+		assert.Equal(t, listUpdateStub.Name, retrieved.Name)
+		assert.Equal(t, listUpdateStub.Description, retrieved.Description)
 	})
 
 	t.Run("non-existing list", func(t *testing.T) {
 		// prepare
-		update := model.ListUpdate{
+		listUpdateStub := model.ListUpdate{
 			Name: "Updated Name",
 		}
 
 		// execute
-		_, err := r.Update("non-existing-id", update)
+		_, err := r.Update("non-existing-id", listUpdateStub)
 
 		// verify
 		assert.Error(t, err)
@@ -107,18 +107,18 @@ func TestInMemoryListRepo_Delete(t *testing.T) {
 
 	t.Run("successful deletion", func(t *testing.T) {
 		// prepare
-		lc := model.RandomListCreate()
+		listCreateStub := model.RandomListCreate()
 
-		list, err := r.Create(lc)
+		listStub, err := r.Create(listCreateStub)
 		require.NoError(t, err)
 
 		// execute
-		err = r.Delete(list.ID)
+		err = r.Delete(listStub.ID)
 
 		// verify
 		assert.NoError(t, err)
 
-		assert.False(t, r.Has(list.ID))
+		assert.False(t, r.Has(listStub.ID))
 	})
 
 	t.Run("non-existing list", func(t *testing.T) {
@@ -146,12 +146,12 @@ func TestInMemoryListRepo_List(t *testing.T) {
 
 	t.Run("with lists", func(t *testing.T) {
 		// prepare
-		lc1 := model.RandomListCreate()
-		lc2 := model.RandomListCreate()
+		listCreateStub1 := model.RandomListCreate()
+		listCreateStub2 := model.RandomListCreate()
 
-		list1, err := r.Create(lc1)
+		listStub1, err := r.Create(listCreateStub1)
 		require.NoError(t, err)
-		list2, err := r.Create(lc2)
+		listStub2, err := r.Create(listCreateStub2)
 		require.NoError(t, err)
 
 		// execute
@@ -160,8 +160,24 @@ func TestInMemoryListRepo_List(t *testing.T) {
 		// verify
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(lists))
-		assert.True(t, r.Has(list1.ID))
-		assert.True(t, r.Has(list2.ID))
+		assert.True(t, r.Has(listStub1.ID))
+		assert.True(t, r.Has(listStub2.ID))
+	})
+
+	t.Run("with 100+ lists", func(t *testing.T) {
+		// prepare
+		for range 105 {
+			listCreateStub := model.RandomListCreate()
+			_, err := r.Create(listCreateStub)
+			require.NoError(t, err)
+		}
+
+		// execute
+		lists, err := r.List()
+
+		// verify
+		assert.NoError(t, err)
+		assert.Equal(t, 100, len(lists))
 	})
 }
 

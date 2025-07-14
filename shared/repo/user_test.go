@@ -14,16 +14,16 @@ func TestInMemoryUserRepo_Create(t *testing.T) {
 
 	t.Run("successful creation", func(t *testing.T) {
 		// prepare
-		ucStub := model.RandomUserCreate()
+		userCreateStub := model.RandomUserCreate()
 		passwordStub := []byte{}
 
 		// execute
-		user, err := r.Create(ucStub, passwordStub)
+		user, err := r.Create(userCreateStub, passwordStub)
 
 		// verify
 		assert.NoError(t, err)
-		assert.Equal(t, ucStub.Name, user.Name)
-		assert.Equal(t, ucStub.Email, user.Email)
+		assert.Equal(t, userCreateStub.Name, user.Name)
+		assert.Equal(t, userCreateStub.Email, user.Email)
 		assert.NotEmpty(t, user.ID)
 	})
 }
@@ -33,18 +33,18 @@ func TestInMemoryUserRepo_GetByID(t *testing.T) {
 
 	t.Run("existing user", func(t *testing.T) {
 		// prepare
-		ucStub := model.RandomUserCreate()
+		userCreateStub := model.RandomUserCreate()
 		passwordStub := []byte{}
 
-		user, err := r.Create(ucStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordStub)
 		require.NoError(t, err)
 
 		// execute
-		retrieved, err := r.GetByID(user.ID)
+		retrieved, err := r.GetByID(userStub.ID)
 
 		// verify
 		assert.NoError(t, err)
-		assert.Equal(t, user, retrieved)
+		assert.Equal(t, userStub, retrieved)
 	})
 
 	t.Run("non-existing user", func(t *testing.T) {
@@ -62,52 +62,52 @@ func TestInMemoryUserRepo_Update(t *testing.T) {
 
 	t.Run("successful update", func(t *testing.T) {
 		// prepare
-		ucStub := model.RandomUserCreate()
+		userCreateStub := model.RandomUserCreate()
 		passwordStub := []byte{}
 
-		user, err := r.Create(ucStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordStub)
 		require.NoError(t, err)
-		update := model.UserUpdate{
+		userUpdateStub := model.UserUpdate{
 			Name:  "Updated Name",
 			Email: "updated@example.com",
 		}
 
 		// execute
-		updated, err := r.Update(user.ID, update)
+		updated, err := r.Update(userStub.ID, userUpdateStub)
 
 		// verify
 		assert.NoError(t, err)
 		assert.Equal(t, "Updated Name", updated.Name)
 		assert.Equal(t, "updated@example.com", updated.Email)
-		assert.Equal(t, user.ID, updated.ID)
+		assert.Equal(t, userStub.ID, updated.ID)
 	})
 
 	t.Run("partial update", func(t *testing.T) {
 		// prepare
-		ucStub := model.RandomUserCreate()
+		userCreateStub := model.RandomUserCreate()
 		passwordStub := []byte{}
 
-		user, err := r.Create(ucStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordStub)
 		require.NoError(t, err)
-		update := model.UserUpdate{
+		userUpdateStub := model.UserUpdate{
 			Name: "Only Name Updated",
 		}
 
 		// execute
-		updated, err := r.Update(user.ID, update)
+		updated, err := r.Update(userStub.ID, userUpdateStub)
 
 		// verify
 		assert.NoError(t, err)
 		assert.Equal(t, "Only Name Updated", updated.Name)
-		assert.Equal(t, user.Email, updated.Email)
+		assert.Equal(t, userStub.Email, updated.Email)
 	})
 
 	t.Run("non-existing user", func(t *testing.T) {
 		// prepare
-		uuStub := model.RandomUserUpdate()
+		userUpdateStub := model.RandomUserUpdate()
 
 		// execute
-		_, err := r.Update("non-existing-id", uuStub)
+		_, err := r.Update("non-existing-id", userUpdateStub)
 
 		// verify
 		assert.Error(t, err)
@@ -116,20 +116,20 @@ func TestInMemoryUserRepo_Update(t *testing.T) {
 
 	t.Run("empty update fields are ignored", func(t *testing.T) {
 		// prepare
-		ucStub := model.RandomUserCreate()
+		userCreateStub := model.RandomUserCreate()
 		passwordStub := []byte{}
 
-		user, err := r.Create(ucStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordStub)
 		require.NoError(t, err)
-		update := model.UserUpdate{}
+		userUpdateStub := model.UserUpdate{}
 
 		// execute
-		updated, err := r.Update(user.ID, update)
+		updated, err := r.Update(userStub.ID, userUpdateStub)
 
 		// verify
 		assert.NoError(t, err)
-		assert.Equal(t, user.Name, updated.Name)
-		assert.Equal(t, user.Email, updated.Email)
+		assert.Equal(t, userStub.Name, updated.Name)
+		assert.Equal(t, userStub.Email, updated.Email)
 	})
 }
 
@@ -138,14 +138,14 @@ func TestInMemoryUserRepo_Delete(t *testing.T) {
 
 	t.Run("successful deletion", func(t *testing.T) {
 		// prepare
-		ucStub := model.RandomUserCreate()
+		userCreateStub := model.RandomUserCreate()
 		passwordStub := []byte{}
 
-		user, err := r.Create(ucStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordStub)
 		require.NoError(t, err)
 
 		// execute
-		err = r.Delete(user.ID)
+		err = r.Delete(userStub.ID)
 
 		// verify
 		assert.NoError(t, err)
@@ -176,12 +176,12 @@ func TestInMemoryUserRepo_List(t *testing.T) {
 
 	t.Run("with users", func(t *testing.T) {
 		// prepare
-		uc1Stub := model.RandomUserCreate()
-		uc2Stub := model.RandomUserCreate()
+		userCreateStub1 := model.RandomUserCreate()
+		userCreateStub2 := model.RandomUserCreate()
 		passwordStub := []byte{}
 
-		user1, _ := r.Create(uc1Stub, passwordStub)
-		user2, _ := r.Create(uc2Stub, passwordStub)
+		userStub1, _ := r.Create(userCreateStub1, passwordStub)
+		userStub2, _ := r.Create(userCreateStub2, passwordStub)
 
 		// execute
 		users, err := r.List()
@@ -189,7 +189,23 @@ func TestInMemoryUserRepo_List(t *testing.T) {
 		// verify
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))
-		assert.True(t, r.Has(user1.ID))
-		assert.True(t, r.Has(user2.ID))
+		assert.True(t, r.Has(userStub1.ID))
+		assert.True(t, r.Has(userStub2.ID))
+	})
+
+	t.Run("with 100+ lists", func(t *testing.T) {
+		// prepare
+		for range 105 {
+			userCreateStub := model.RandomUserCreate()
+			_, err := r.Create(userCreateStub, []byte{})
+			require.NoError(t, err)
+		}
+
+		// execute
+		lists, err := r.List()
+
+		// verify
+		assert.NoError(t, err)
+		assert.Equal(t, 100, len(lists))
 	})
 }

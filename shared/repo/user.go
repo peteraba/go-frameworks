@@ -10,6 +10,8 @@ import (
 	"github.com/peteraba/go-frameworks/shared/model"
 )
 
+const maxUserListLength = 100
+
 type UserRepo interface {
 	Create(user model.UserCreate) (model.User, error)
 	GetByID(id string) (model.User, error)
@@ -134,13 +136,13 @@ func (r *InMemoryUserRepo) List() ([]model.User, error) {
 	}
 
 	l := len(r.users)
-	if l > maxListLength {
-		l = maxListLength
+	if l > maxUserListLength {
+		l = maxUserListLength
 	}
 
 	users := make([]model.User, 0, l)
 	for i, key := range r.keys {
-		if i > l {
+		if i >= l {
 			break
 		}
 
