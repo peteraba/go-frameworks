@@ -9,9 +9,11 @@ import (
 )
 
 func TestRandomList(t *testing.T) {
+	// execute
 	got1 := model.RandomList()
 	got2 := model.RandomList()
 
+	// verify
 	assert.NotEmpty(t, got1.ID)
 	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
@@ -24,9 +26,11 @@ func TestRandomList(t *testing.T) {
 }
 
 func TestRandomListCreate(t *testing.T) {
+	// execute
 	got1 := model.RandomListCreate()
 	got2 := model.RandomListCreate()
 
+	// verify
 	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
 	assert.NotEqual(t, got1.ProjectID, got2.ProjectID)
@@ -37,9 +41,11 @@ func TestRandomListCreate(t *testing.T) {
 }
 
 func TestRandomListUpdate(t *testing.T) {
+	// execute
 	got1 := model.RandomListUpdate()
 	got2 := model.RandomListUpdate()
 
+	// verify
 	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
 	assert.NotEqual(t, got1.Name, got2.Name)

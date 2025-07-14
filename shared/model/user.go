@@ -3,19 +3,22 @@ package model
 import "github.com/brianvoe/gofakeit/v7"
 
 type User struct {
-	ID    string `json:"id" validate:"required,max=26" fake:"{ulid}"`
-	Name  string `json:"name" validate:"required,max=64" fake:"{firstname} {lastname}"`
-	Email string `json:"email" validate:"required,email" fake:"{email}"`
+	ID     string   `json:"id" validate:"required,max=26" fake:"{ulid}"`
+	Name   string   `json:"name" validate:"required,max=64" fake:"{firstname} {lastname}"`
+	Email  string   `json:"email" validate:"required,email" fake:"{email}"`
+	Groups []string `json:"groups" validate:"dive,max=26"`
 }
 
 type UserCreate struct {
-	Name  string `json:"name" validate:"required,max=64"`
-	Email string `json:"email" validate:"required,email"`
+	Name   string   `json:"name" validate:"required,max=64"`
+	Email  string   `json:"email" validate:"required,email"`
+	Groups []string `json:"groups" validate:"dive,max=26"`
 }
 
 type UserUpdate struct {
-	Name  string `json:"name,omitempty" validate:"max=64"`
-	Email string `json:"email,omitempty" validate:"email"`
+	Name   string   `json:"name,omitempty" validate:"max=64"`
+	Email  string   `json:"email,omitempty" validate:"email"`
+	Groups []string `json:"groups,omitempty" validate:"dive,max=26"`
 }
 
 func (u *User) Validate() error {
@@ -38,9 +41,9 @@ func RandomUser() User {
 
 func RandomUserCreate() UserCreate {
 	u := RandomUser()
-	return UserCreate{Name: u.Name, Email: u.Email}
+	return UserCreate{Name: u.Name, Email: u.Email, Groups: u.Groups}
 }
 func RandomUserUpdate() UserUpdate {
 	u := RandomUser()
-	return UserUpdate{Name: u.Name, Email: u.Email}
+	return UserUpdate{Name: u.Name, Email: u.Email, Groups: u.Groups}
 }

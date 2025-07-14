@@ -8,9 +8,11 @@ import (
 )
 
 func TestRandomProject(t *testing.T) {
+	// execute
 	got1 := model.RandomProject()
 	got2 := model.RandomProject()
 
+	// verify
 	assert.NotEmpty(t, got1.ID)
 	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
@@ -22,9 +24,11 @@ func TestRandomProject(t *testing.T) {
 }
 
 func TestRandomProjectCreate(t *testing.T) {
+	// execute
 	got1 := model.RandomProjectCreate()
 	got2 := model.RandomProjectCreate()
 
+	// verify
 	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
 	assert.NotEqual(t, got1.Name, got2.Name)
@@ -34,9 +38,11 @@ func TestRandomProjectCreate(t *testing.T) {
 }
 
 func TestRandomProjectUpdate(t *testing.T) {
+	// execute
 	got1 := model.RandomProjectUpdate()
 	got2 := model.RandomProjectUpdate()
 
+	// verify
 	assert.NotEmpty(t, got1.Name)
 	assert.NotEmpty(t, got1.Description)
 	assert.NotEqual(t, got1.Name, got2.Name)

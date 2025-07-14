@@ -13,10 +13,14 @@ func TestInMemoryListRepo_Create(t *testing.T) {
 	r := repo.NewInMemoryListRepo()
 
 	t.Run("successful creation", func(t *testing.T) {
+		// prepare
 		list := model.RandomListCreate()
 
+		// execute
 		created, err := r.Create(list)
-		require.NoError(t, err)
+
+		// verify
+		assert.NoError(t, err)
 
 		assert.Equal(t, list.Name, created.Name)
 		assert.Equal(t, list.Description, created.Description)
@@ -28,6 +32,7 @@ func TestInMemoryListRepo_GetByID(t *testing.T) {
 	r := repo.NewInMemoryListRepo()
 
 	t.Run("existing list", func(t *testing.T) {
+		// prepare
 		lc := model.RandomListCreate()
 
 		list, err := r.Create(model.ListCreate{
@@ -37,8 +42,11 @@ func TestInMemoryListRepo_GetByID(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		// execute
 		retrieved, err := r.GetByID(list.ID)
-		require.NoError(t, err)
+
+		// verify
+		assert.NoError(t, err)
 
 		assert.Equal(t, list, retrieved)
 	})
@@ -55,37 +63,40 @@ func TestInMemoryListRepo_Update(t *testing.T) {
 	r := repo.NewInMemoryListRepo()
 
 	t.Run("successful update", func(t *testing.T) {
+		// prepare
 		listToCreate := model.RandomListCreate()
 		createdList, err := r.Create(listToCreate)
 		require.NoError(t, err)
 
-		update := model.ListUpdate{
-			Name:        "Updated Name",
-			Description: "Updated Description",
-		}
+		update := model.RandomListUpdate()
 
+		// execute
 		updated, err := r.Update(createdList.ID, update)
 
+		// verify
 		assert.NoError(t, err)
-		assert.Equal(t, "Updated Name", updated.Name)
-		assert.Equal(t, "Updated Description", updated.Description)
+		assert.Equal(t, update.Name, updated.Name)
+		assert.Equal(t, update.Description, updated.Description)
 		assert.Equal(t, createdList.ID, updated.ID)
 		assert.Equal(t, createdList.ProjectID, updated.ProjectID)
 
 		// Verify the list was actually updated in the repo
 		retrieved, err := r.GetByID(updated.ID)
 		require.NoError(t, err)
-		assert.Equal(t, "Updated Name", retrieved.Name)
-		assert.Equal(t, "Updated Description", retrieved.Description)
+		assert.Equal(t, update.Name, retrieved.Name)
+		assert.Equal(t, update.Description, retrieved.Description)
 	})
 
 	t.Run("non-existing list", func(t *testing.T) {
+		// prepare
 		update := model.ListUpdate{
 			Name: "Updated Name",
 		}
 
+		// execute
 		_, err := r.Update("non-existing-id", update)
 
+		// verify
 		assert.Error(t, err)
 		assert.Equal(t, "list not found", err.Error())
 	})
@@ -95,20 +106,26 @@ func TestInMemoryListRepo_Delete(t *testing.T) {
 	r := repo.NewInMemoryListRepo()
 
 	t.Run("successful deletion", func(t *testing.T) {
+		// prepare
 		lc := model.RandomListCreate()
 
 		list, err := r.Create(lc)
 		require.NoError(t, err)
 
+		// execute
 		err = r.Delete(list.ID)
+
+		// verify
 		assert.NoError(t, err)
 
 		assert.False(t, r.Has(list.ID))
 	})
 
 	t.Run("non-existing list", func(t *testing.T) {
+		// execute
 		err := r.Delete("non-existing-id")
 
+		// verify
 		assert.Error(t, err)
 		assert.Equal(t, "list not found", err.Error())
 	})
@@ -118,14 +135,17 @@ func TestInMemoryListRepo_List(t *testing.T) {
 	r := repo.NewInMemoryListRepo()
 
 	t.Run("empty repo", func(t *testing.T) {
+		// execute
 		lists, err := r.List()
 
+		// verify
 		assert.NoError(t, err)
 		assert.NotNil(t, lists)
-		assert.Equal(t, 0, len(lists))
+		assert.Empty(t, lists)
 	})
 
 	t.Run("with lists", func(t *testing.T) {
+		// prepare
 		lc1 := model.RandomListCreate()
 		lc2 := model.RandomListCreate()
 
@@ -134,19 +154,14 @@ func TestInMemoryListRepo_List(t *testing.T) {
 		list2, err := r.Create(lc2)
 		require.NoError(t, err)
 
+		// execute
 		lists, err := r.List()
 
+		// verify
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(lists))
-
-		// Verify both lists are present (order may vary)
-		listIDs := make(map[string]bool)
-		for _, list := range lists {
-			listIDs[list.ID] = true
-		}
-
-		assert.True(t, listIDs[list1.ID])
-		assert.True(t, listIDs[list2.ID])
+		assert.True(t, r.Has(list1.ID))
+		assert.True(t, r.Has(list2.ID))
 	})
 }
 
@@ -154,9 +169,10 @@ func TestInMemoryListRepo_Concurrency(t *testing.T) {
 	r := repo.NewInMemoryListRepo()
 
 	t.Run("concurrent create and read", func(t *testing.T) {
+		// prepare
 		done := make(chan bool)
 
-		// Goroutine 1: Create lists
+		// goroutine 1: Create lists
 		go func() {
 			for range 100 {
 				list := model.RandomListCreate()
@@ -166,7 +182,7 @@ func TestInMemoryListRepo_Concurrency(t *testing.T) {
 			done <- true
 		}()
 
-		// Goroutine 2: Read lists
+		// goroutine 2: Read lists
 		go func() {
 			for range 100 {
 				_, err := r.List()
@@ -178,8 +194,10 @@ func TestInMemoryListRepo_Concurrency(t *testing.T) {
 		<-done
 		<-done
 
-		// Verify no panic occurred and data is consistent
+		// execute
 		lists, err := r.List()
+
+		// verify that no panic occurred and data is consistent
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, len(lists), 100) // May be less due to duplicate ID errors
 	})

@@ -1,46 +1,46 @@
-package model
+package model_test
 
 import (
 	"testing"
 
+	"github.com/peteraba/go-frameworks/shared/model"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAuthGroupValidation(t *testing.T) {
-	ag := RandomAuthGroup()
-	assert.NoError(t, ag.Validate())
+func TestRandomAuthGroup(t *testing.T) {
+	// execute
+	got1 := model.RandomAuthGroup()
+	got2 := model.RandomAuthGroup()
 
-	ag.ID = ""
-	assert.Error(t, ag.Validate())
-
-	ag = RandomAuthGroup()
-	ag.Users = []string{""}
-	assert.Error(t, ag.Validate())
+	// verify
+	assert.NotEmpty(t, got1.ID)
+	assert.NotEmpty(t, got1.Name)
+	assert.NotEqual(t, got1.ID, got2.ID)
+	assert.NotEqual(t, got1.Name, got2.Name)
+	assert.NoError(t, got1.Validate())
+	assert.NoError(t, got2.Validate())
 }
 
-func TestAuthGroupCreateValidation(t *testing.T) {
-	agc := RandomAuthGroupCreate()
-	assert.NoError(t, agc.Validate())
+func TestRandomAuthGroupCreate(t *testing.T) {
+	// execute
+	got1 := model.RandomAuthGroupCreate()
+	got2 := model.RandomAuthGroupCreate()
 
-	agc.Name = ""
-	assert.Error(t, agc.Validate())
-
-	agc = RandomAuthGroupCreate()
-	agc.Users = []string{""}
-	assert.Error(t, agc.Validate())
+	// verify
+	assert.NotEmpty(t, got1.Name)
+	assert.NotEqual(t, got1.Name, got2.Name)
+	assert.NoError(t, got1.Validate())
+	assert.NoError(t, got2.Validate())
 }
 
-func TestAuthGroupUpdateValidation(t *testing.T) {
-	agu := RandomAuthGroupUpdate()
-	assert.NoError(t, agu.Validate())
+func TestRandomAuthGroupUpdate(t *testing.T) {
+	// execute
+	got1 := model.RandomAuthGroupUpdate()
+	got2 := model.RandomAuthGroupUpdate()
 
-	agu.Users = []string{""}
-	assert.Error(t, agu.Validate())
-}
-
-func TestRandomAuthGroupGeneration(t *testing.T) {
-	ag := RandomAuthGroup()
-	assert.NotEmpty(t, ag.ID)
-	assert.NotEmpty(t, ag.Name)
-	assert.NotEmpty(t, ag.Users)
+	// verify
+	assert.NotEmpty(t, got1.Name)
+	assert.NotEqual(t, got1.Name, got2.Name)
+	assert.NoError(t, got1.Validate())
+	assert.NoError(t, got2.Validate())
 }

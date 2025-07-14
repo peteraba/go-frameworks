@@ -103,3 +103,12 @@ func (r *InMemoryUserRepo) List() ([]model.User, error) {
 
 	return users, nil
 }
+
+func (r *InMemoryUserRepo) Has(id string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	_, exists := r.users[id]
+
+	return exists
+}

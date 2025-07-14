@@ -36,6 +36,7 @@ paths:
         - project
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.read"]
       responses:
         '200':
           description: A list of TODO projects
@@ -67,6 +68,7 @@ paths:
         - project
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.write"]
       requestBody:
         required: true
         description: The project to create.
@@ -98,6 +100,7 @@ paths:
         - project
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.read"]
       parameters:
         - $ref: '#/components/parameters/ProjectId'
       responses:
@@ -115,6 +118,38 @@ paths:
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/RateLimitLimit'
+    put:
+      summary: Update a TODO project
+      operationId: updateProject
+      tags:
+        - project
+      security:
+        - ApiKeyAuth: []
+        - OAuth2: ["project.write"]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        description: The project to create.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Project updated
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '4XX':
+          description: Problem with the project creation request
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
 
   /lists:
     get:
@@ -124,6 +159,7 @@ paths:
         - list
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.read"]
       responses:
         '200':
           description: A list of TODO lists
@@ -154,6 +190,7 @@ paths:
         - list
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.write"]
       requestBody:
         required: true
         description: Request body for TODO list creation
@@ -185,6 +222,7 @@ paths:
         - list
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.read"]
       parameters:
         - $ref: '#/components/parameters/ListId'
       responses:
@@ -202,6 +240,38 @@ paths:
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/RateLimitLimit'
+    put:
+      summary: Update a TODO list in a project
+      operationId: updateList
+      tags:
+        - list
+      security:
+        - ApiKeyAuth: []
+        - OAuth2: ["project.write"]
+      parameters:
+        - $ref: '#/components/parameters/ListId'
+      requestBody:
+        required: true
+        description: Request body for TODO list creation
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUpdate'
+      responses:
+        '201':
+          description: List created
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        '4XX':
+          description: Problem with the todo list creation request
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
 
   /lists/{listId}/todos:
     get:
@@ -211,6 +281,7 @@ paths:
         - todo
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.write"]
       parameters:
         - $ref: '#/components/parameters/ListId'
       responses:
@@ -244,6 +315,7 @@ paths:
         - todo
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.write"]
       parameters:
         - $ref: '#/components/parameters/ListId'
       requestBody:
@@ -277,6 +349,7 @@ paths:
         - todo
       security:
         - ApiKeyAuth: []
+        - OAuth2: ["project.read"]
       parameters:
         - $ref: '#/components/parameters/ListId'
         - $ref: '#/components/parameters/TodoId'
@@ -292,6 +365,39 @@ paths:
                 $ref: '#/components/schemas/Todo'
         '4XX':
           description: Problem with the todo list item retrieval request
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+    put:
+      summary: Update a TODO item in a list
+      operationId: updateTodo
+      tags:
+        - todo
+      security:
+        - ApiKeyAuth: []
+        - OAuth2: ["project.write"]
+      parameters:
+        - $ref: '#/components/parameters/ListId'
+        - $ref: '#/components/parameters/TodoId'
+      requestBody:
+        required: true
+        description: The details of the TODO item to create
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoUpdate'
+      responses:
+        '200':
+          description: TODO item updated
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '4XX':
+          description: Problem with the todo list item update request
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/RateLimitLimit'
@@ -613,6 +719,22 @@ components:
           pattern: .*
       required:
         - name
+    ProjectUpdate:
+      type: object
+      description: Object used to update a TODO project
+      properties:
+        name:
+          type: string
+          example: "Shopping lists"
+          maxLength: 64
+          pattern: .*
+        description:
+          type: string
+          example: "All the lists that need to do with shopping."
+          maxLength: 255
+          pattern: .*
+      required:
+        - name
     List:
       type: object
       description: Object representing a TODO list
@@ -644,6 +766,27 @@ components:
     ListCreate:
       type: object
       description: Object used to create a new TODO list
+      properties:
+        projectId:
+          type: string
+          example: "01K02QBK5K1PBQ7TP755AFWJWQ"
+          maxLength: 26
+          format: ulid
+        name:
+          type: string
+          example: "Shopping list"
+          maxLength: 64
+          pattern: .*
+        description:
+          type: string
+          example: "Shopping list for Mom"
+          maxLength: 255
+          pattern: .*
+      required:
+        - name
+    ListUpdate:
+      type: object
+      description: Object used to update a TODO list
       properties:
         projectId:
           type: string
@@ -717,6 +860,27 @@ components:
           type: boolean
           example: true
       required:
+        - listId
+        - title
+        - completed
+    TodoUpdate:
+      type: object
+      description: Object used to update a todo item
+      properties:
+        title:
+          type: string
+          example: "Milk"
+          maxLength: 64
+          pattern: .*
+        description:
+          type: string
+          example: "Milk, Bread, Cheese"
+          maxLength: 255
+          pattern: .*
+        completed:
+          type: boolean
+          example: true
+      required:
         - title
         - completed
     User:
@@ -736,6 +900,15 @@ components:
           type: string
           example: "john@example.com"
           format: email
+        groups:
+          type: array
+          description: List of authorization group IDs the user belongs to
+          example:
+          - group1
+          items:
+            type: string
+            maxLength: 26
+            format: ulid
       required:
         - id
         - name
@@ -752,6 +925,15 @@ components:
           type: string
           example: "john@example.com"
           format: email
+        groups:
+          type: array
+          description: List of authorization group IDs the user belongs to
+          example:
+          - group1
+          items:
+            type: string
+            maxLength: 26
+            format: ulid
       required:
         - name
         - email
@@ -767,6 +949,15 @@ components:
           type: string
           example: "john@example.com"
           format: email
+        groups:
+          type: array
+          description: List of authorization group IDs the user belongs to
+          example:
+          - group1
+          items:
+            type: string
+            maxLength: 26
+            format: ulid
     AuthGroup:
       type: object
       description: Object representing an authorization group
@@ -780,19 +971,9 @@ components:
           type: string
           example: "admins"
           maxLength: 64
-        users:
-          type: array
-          example:
-            - pabazsolt
-            - zmueller
-          items:
-            type: string
-            maxLength: 26
-            format: ulid
       required:
         - id
         - name
-        - users
     AuthGroupCreate:
       type: object
       description: Object used to create a new authorization group
@@ -801,18 +982,8 @@ components:
           type: string
           example: "admins"
           maxLength: 64
-        users:
-          type: array
-          example:
-            - pabazsolt
-            - zmueller
-          items:
-            type: string
-            maxLength: 26
-            format: ulid
       required:
         - name
-        - users
     AuthGroupUpdate:
       type: object
       description: Object used to update an authorization group
@@ -821,15 +992,6 @@ components:
           type: string
           example: "admins"
           maxLength: 64
-        users:
-          type: array
-          example:
-            - pabazsolt
-            - zmueller
-          items:
-            type: string
-            maxLength: 26
-            format: ulid
 
   securitySchemes:
     ApiKeyAuth:
@@ -837,3 +999,16 @@ components:
       in: header
       name: X-API-Key
       description: This is the main API security scheme
+    OAuth2:
+      type: oauth2
+      description: OAuth2 authentication with authorization code flow
+      flows:
+        authorizationCode:
+          authorizationUrl: https://my.auth.example.com/
+          tokenUrl: https://my.token.example.com/
+          refreshUrl: https://my.refresh.example.com/
+          scopes:
+            read: read objects in your account
+            write: write objects in your account
+      
+

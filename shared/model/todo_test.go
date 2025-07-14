@@ -8,9 +8,11 @@ import (
 )
 
 func TestRandomTodo(t *testing.T) {
+	// execute
 	got1 := model.RandomTodo()
 	got2 := model.RandomTodo()
 
+	// verify
 	assert.NotEmpty(t, got1.ID)
 	assert.NotEmpty(t, got1.Title)
 	assert.NotEmpty(t, got1.Description)
@@ -21,9 +23,11 @@ func TestRandomTodo(t *testing.T) {
 }
 
 func TestRandomTodoCreate(t *testing.T) {
+	// execute
 	got1 := model.RandomTodoCreate()
 	got2 := model.RandomTodoCreate()
 
+	// verify
 	assert.NotEmpty(t, got1.Title)
 	assert.NotEmpty(t, got1.Description)
 	assert.NotEqual(t, got1.Title, got2.Title)
@@ -33,9 +37,11 @@ func TestRandomTodoCreate(t *testing.T) {
 }
 
 func TestRandomTodoUpdate(t *testing.T) {
+	// execute
 	got1 := model.RandomTodoUpdate()
 	got2 := model.RandomTodoUpdate()
 
+	// verify
 	assert.NotEmpty(t, got1.Title)
 	assert.NotEmpty(t, got1.Description)
 	assert.NotEqual(t, got1.Title, got2.Title)

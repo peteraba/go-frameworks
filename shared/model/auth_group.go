@@ -3,19 +3,16 @@ package model
 import "github.com/brianvoe/gofakeit/v7"
 
 type AuthGroup struct {
-	ID    string   `json:"id" validate:"required,max=26" fake:"{ulid}"`
-	Name  string   `json:"name" validate:"required,max=64" fake:"{word}"`
-	Users []string `json:"users" validate:"dive,required,max=26"`
+	ID   string `json:"id" validate:"required,max=26" fake:"{ulid}"`
+	Name string `json:"name" validate:"required,max=64" fake:"{word}"`
 }
 
 type AuthGroupCreate struct {
-	Name  string   `json:"name" validate:"required,max=64"`
-	Users []string `json:"users" validate:"dive,required,max=26"`
+	Name string `json:"name" validate:"required,max=64"`
 }
 
 type AuthGroupUpdate struct {
-	Name  string   `json:"name,omitempty" validate:"max=64"`
-	Users []string `json:"users,omitempty" validate:"dive,required,max=26"`
+	Name string `json:"name,omitempty" validate:"max=64"`
 }
 
 func (a *AuthGroup) Validate() error {
@@ -37,9 +34,9 @@ func RandomAuthGroup() AuthGroup {
 }
 func RandomAuthGroupCreate() AuthGroupCreate {
 	a := RandomAuthGroup()
-	return AuthGroupCreate{Name: a.Name, Users: a.Users}
+	return AuthGroupCreate{Name: a.Name}
 }
 func RandomAuthGroupUpdate() AuthGroupUpdate {
 	a := RandomAuthGroup()
-	return AuthGroupUpdate{Name: a.Name, Users: a.Users}
+	return AuthGroupUpdate{Name: a.Name}
 }

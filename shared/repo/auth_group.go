@@ -32,9 +32,8 @@ func (r *InMemoryAuthGroupRepo) Create(group model.AuthGroupCreate) (model.AuthG
 	defer r.mu.Unlock()
 
 	a := model.AuthGroup{
-		ID:    ulid.Make().String(),
-		Name:  group.Name,
-		Users: group.Users,
+		ID:   ulid.Make().String(),
+		Name: group.Name,
 	}
 
 	if _, exists := r.groups[a.ID]; exists {
@@ -70,9 +69,6 @@ func (r *InMemoryAuthGroupRepo) Update(id string, update model.AuthGroupUpdate) 
 	if update.Name != "" {
 		group.Name = update.Name
 	}
-	if len(update.Users) > 0 {
-		group.Users = update.Users
-	}
 
 	r.groups[id] = group
 
@@ -102,4 +98,13 @@ func (r *InMemoryAuthGroupRepo) List() ([]model.AuthGroup, error) {
 	}
 
 	return groups, nil
+}
+
+func (r *InMemoryAuthGroupRepo) Has(id string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	_, exists := r.groups[id]
+
+	return exists
 }

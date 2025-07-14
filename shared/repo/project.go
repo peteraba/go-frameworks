@@ -46,14 +46,6 @@ func (r *InMemoryProjectRepo) Create(project model.ProjectCreate) (model.Project
 	return p, nil
 }
 
-func (r *InMemoryProjectRepo) Has(id string) bool {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	_, exists := r.projects[id]
-	return exists
-}
-
 func (r *InMemoryProjectRepo) GetByID(id string) (model.Project, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -110,4 +102,12 @@ func (r *InMemoryProjectRepo) List() ([]model.Project, error) {
 	}
 
 	return projects, nil
+}
+
+func (r *InMemoryProjectRepo) Has(id string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	_, exists := r.projects[id]
+	return exists
 }

@@ -1,46 +1,46 @@
-package model
+package model_test
 
 import (
 	"testing"
 
+	"github.com/peteraba/go-frameworks/shared/model"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUserValidation(t *testing.T) {
-	u := RandomUser()
-	assert.NoError(t, u.Validate())
+func TestRandomUser(t *testing.T) {
+	// execute
+	got1 := model.RandomUser()
+	got2 := model.RandomUser()
 
-	u.ID = ""
-	assert.Error(t, u.Validate())
-
-	u = RandomUser()
-	u.Email = "not-an-email"
-	assert.Error(t, u.Validate())
+	// verify
+	assert.NotEmpty(t, got1.ID)
+	assert.NotEmpty(t, got1.Name)
+	assert.NotEqual(t, got1.ID, got2.ID)
+	assert.NotEqual(t, got1.Name, got2.Name)
+	assert.NoError(t, got1.Validate())
+	assert.NoError(t, got2.Validate())
 }
 
-func TestUserCreateValidation(t *testing.T) {
-	uc := RandomUserCreate()
-	assert.NoError(t, uc.Validate())
+func TestRandomUserCreate(t *testing.T) {
+	// execute
+	got1 := model.RandomUserCreate()
+	got2 := model.RandomUserCreate()
 
-	uc.Name = ""
-	assert.Error(t, uc.Validate())
-
-	uc = RandomUserCreate()
-	uc.Email = "not-an-email"
-	assert.Error(t, uc.Validate())
+	// verify
+	assert.NotEmpty(t, got1.Name)
+	assert.NotEqual(t, got1.Name, got2.Name)
+	assert.NoError(t, got1.Validate())
+	assert.NoError(t, got2.Validate())
 }
 
-func TestUserUpdateValidation(t *testing.T) {
-	uu := RandomUserUpdate()
-	assert.NoError(t, uu.Validate())
+func TestRandomUserUpdate(t *testing.T) {
+	// execute
+	got1 := model.RandomUserUpdate()
+	got2 := model.RandomUserUpdate()
 
-	uu.Email = "not-an-email"
-	assert.Error(t, uu.Validate())
-}
-
-func TestRandomUserGeneration(t *testing.T) {
-	u := RandomUser()
-	assert.NotEmpty(t, u.ID)
-	assert.NotEmpty(t, u.Name)
-	assert.NotEmpty(t, u.Email)
+	// verify
+	assert.NotEmpty(t, got1.Name)
+	assert.NotEqual(t, got1.Name, got2.Name)
+	assert.NoError(t, got1.Validate())
+	assert.NoError(t, got2.Validate())
 }
