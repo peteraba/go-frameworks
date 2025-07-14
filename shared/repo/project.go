@@ -4,16 +4,16 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/peteraba/go-frameworks/shared/model"
 )
 
 type ProjectRepo interface {
-	Create(project model.Project) (model.Project, error)
+	Create(project model.ProjectCreate) (model.Project, error)
 	GetByID(id string) (model.Project, error)
 	Update(id string, update model.ProjectUpdate) (model.Project, error)
 	Delete(id string) error
 	List() ([]model.Project, error)
-	Has(id string) bool
 }
 
 type InMemoryProjectRepo struct {
@@ -27,20 +27,31 @@ func NewInMemoryProjectRepo() *InMemoryProjectRepo {
 	}
 }
 
-func (r *InMemoryProjectRepo) Create(project model.Project) (model.Project, error) {
+func (r *InMemoryProjectRepo) Create(project model.ProjectCreate) (model.Project, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if project.ID == "" {
-		return model.Project{}, errors.New("project ID is required")
+	p := model.Project{
+		ID:          ulid.Make().String(),
+		Name:        project.Name,
+		Description: project.Description,
 	}
-	if _, exists := r.projects[project.ID]; exists {
+
+	if _, exists := r.projects[p.ID]; exists {
 		return model.Project{}, errors.New("project already exists")
 	}
 
-	r.projects[project.ID] = project
+	r.projects[p.ID] = p
 
-	return project, nil
+	return p, nil
+}
+
+func (r *InMemoryProjectRepo) Has(id string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	_, exists := r.projects[id]
+	return exists
 }
 
 func (r *InMemoryProjectRepo) GetByID(id string) (model.Project, error) {

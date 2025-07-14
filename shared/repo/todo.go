@@ -4,11 +4,12 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/peteraba/go-frameworks/shared/model"
 )
 
 type TodoRepo interface {
-	Create(todo model.Todo) (model.Todo, error)
+	Create(todo model.TodoCreate) (model.Todo, error)
 	GetByID(id string) (model.Todo, error)
 	Update(id string, update model.TodoUpdate) (model.Todo, error)
 	Delete(id string) error
@@ -26,20 +27,33 @@ func NewInMemoryTodoRepo() *InMemoryTodoRepo {
 	}
 }
 
-func (r *InMemoryTodoRepo) Create(todo model.Todo) (model.Todo, error) {
+func (r *InMemoryTodoRepo) Create(todo model.TodoCreate) (model.Todo, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if todo.ID == "" {
-		return model.Todo{}, errors.New("todo ID is required")
+	t := model.Todo{
+		ID:          ulid.Make().String(),
+		ListID:      todo.ListID,
+		Title:       todo.Title,
+		Description: todo.Description,
+		Completed:   todo.Completed,
 	}
-	if _, exists := r.todos[todo.ID]; exists {
+
+	if _, exists := r.todos[t.ID]; exists {
 		return model.Todo{}, errors.New("todo already exists")
 	}
 
-	r.todos[todo.ID] = todo
+	r.todos[t.ID] = t
 
-	return todo, nil
+	return t, nil
+}
+
+func (r *InMemoryTodoRepo) Has(id string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	_, exists := r.todos[id]
+	return exists
 }
 
 func (r *InMemoryTodoRepo) GetByID(id string) (model.Todo, error) {
@@ -69,7 +83,9 @@ func (r *InMemoryTodoRepo) Update(id string, update model.TodoUpdate) (model.Tod
 	if update.Description != "" {
 		todo.Description = update.Description
 	}
-	// Add more fields as needed
+	if update.Completed != nil {
+		todo.Completed = *update.Completed
+	}
 
 	r.todos[id] = todo
 

@@ -14,7 +14,6 @@ type ListRepo interface {
 	Update(id string, update model.ListUpdate) (model.List, error)
 	Delete(id string) error
 	List() ([]model.List, error)
-	Has(id string) bool
 }
 
 type InMemoryListRepo struct {
