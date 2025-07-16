@@ -26,7 +26,7 @@ var ErrTodoNotFound = errors.New("todo item not found")
 type InMemoryTodoRepo struct {
 	mu    sync.RWMutex
 	todos map[string]model.Todo
-	keys  []string
+	ids   []string
 	dirty bool
 }
 
@@ -49,7 +49,7 @@ func (r *InMemoryTodoRepo) Create(todo model.TodoCreate) (model.Todo, error) {
 	}
 
 	r.todos[t.ID] = t
-	r.keys = append(r.keys, t.ID)
+	r.ids = append(r.ids, t.ID)
 
 	return t, nil
 }
@@ -125,7 +125,7 @@ func (r *InMemoryTodoRepo) List() ([]model.Todo, error) {
 		sort.Strings(keys)
 
 		r.dirty = false
-		r.keys = keys
+		r.ids = keys
 	}
 
 	l := len(r.todos)
@@ -134,7 +134,7 @@ func (r *InMemoryTodoRepo) List() ([]model.Todo, error) {
 	}
 
 	todos := make([]model.Todo, 0, l)
-	for i, key := range r.keys {
+	for i, key := range r.ids {
 		if i >= l {
 			break
 		}

@@ -59,6 +59,85 @@ func TestInMemoryUserRepo_GetByID(t *testing.T) {
 	})
 }
 
+func TestInMemoryUserRepo_GetByEmail(t *testing.T) {
+	r := repo.NewInMemoryUserRepo()
+
+	t.Run("existing user by email", func(t *testing.T) {
+		// prepare
+		userCreateStub := model.RandomUserCreate()
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
+
+		userStub, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
+		require.NoError(t, err)
+
+		// execute
+		retrieved, err := r.GetByEmail(userStub.Email)
+
+		// verify
+		assert.NoError(t, err)
+		assert.Equal(t, userStub, retrieved)
+	})
+
+	t.Run("non-existing email", func(t *testing.T) {
+		// execute
+		_, err := r.GetByEmail("nonexistent@example.com")
+
+		// verify
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, repo.ErrUserNotFound)
+	})
+
+	t.Run("case sensitive email matching", func(t *testing.T) {
+		// prepare
+		userCreateStub := model.RandomUserCreate()
+		userCreateStub.Email = "TestUser@Example.com"
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
+
+		userStub, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
+		require.NoError(t, err)
+
+		// execute - should not find with different case
+		_, err = r.GetByEmail("testuser@example.com")
+
+		// verify
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, repo.ErrUserNotFound)
+
+		// execute - should find with exact case
+		retrieved, err := r.GetByEmail("TestUser@Example.com")
+
+		// verify
+		assert.NoError(t, err)
+		assert.Equal(t, userStub, retrieved)
+	})
+
+	t.Run("multiple users with different emails", func(t *testing.T) {
+		// prepare
+		userCreateStub1 := model.RandomUserCreate()
+		userCreateStub2 := model.RandomUserCreate()
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
+
+		userStub1, err := r.Create(userCreateStub1, passwordHashStub, passwordSaltStub)
+		require.NoError(t, err)
+		userStub2, err := r.Create(userCreateStub2, passwordHashStub, passwordSaltStub)
+		require.NoError(t, err)
+
+		// execute
+		retrieved1, err := r.GetByEmail(userCreateStub1.Email)
+		assert.NoError(t, err)
+		retrieved2, err := r.GetByEmail(userCreateStub2.Email)
+		assert.NoError(t, err)
+
+		// verify
+		assert.Equal(t, userStub1, retrieved1)
+		assert.Equal(t, userStub2, retrieved2)
+		assert.NotEqual(t, retrieved1.ID, retrieved2.ID)
+	})
+}
+
 func TestInMemoryUserRepo_Update(t *testing.T) {
 	r := repo.NewInMemoryUserRepo()
 

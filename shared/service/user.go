@@ -62,46 +62,40 @@ func (s *UserService) Create(uc model.UserCreate) (model.User, error) {
 	return user, nil
 }
 
+var ErrInvalidCredentials = errors.New("invalid credentials")
+
 func (s *UserService) Login(ul model.UserLogin) (string, error) {
-	users, err := s.repo.List()
+	user, err := s.repo.GetByEmail(ul.Email)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to sign the token, err: %w", err)
 	}
 
-	for _, user := range users {
-		if user.Name != ul.Name {
-			continue
-		}
+	// Hash the provided password with the stored salt
+	hash := argon2.IDKey([]byte(ul.Password), user.PasswordSalt, argonTime, argonMemory, argonThreads, argonKeyLen)
 
-		// Hash the provided password with the stored salt
-		hash := argon2.IDKey([]byte(ul.Password), user.PasswordSalt, argonTime, argonMemory, argonThreads, argonKeyLen)
-
-		// Time-attack-resilient comparison of the password against the stored hash
-		if subtle.ConstantTimeCompare(hash, user.PasswordHash) != 1 {
-			return "", errors.New("invalid credentials")
-		}
-
-		// Create the Claims
-		claims := model.LoggedInUser{
-			ID:     user.ID,
-			Name:   user.Name,
-			Groups: user.Groups,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExpiryTime)),
-				Issuer:    tokenIssuer,
-			},
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		ss, err := token.SignedString(myJWTSigningKey)
-		if err != nil {
-			return "", fmt.Errorf("failed to sign the token, err: %w", err)
-		}
-
-		return ss, nil
+	// Time-attack-resilient comparison of the password against the stored hash
+	if subtle.ConstantTimeCompare(hash, user.PasswordHash) != 1 {
+		return "", ErrInvalidCredentials
 	}
 
-	return "", fmt.Errorf("login failed, err: %w", repo.ErrUserNotFound)
+	// Create the Claims
+	claims := model.LoggedInUser{
+		ID:     user.ID,
+		Name:   user.Name,
+		Groups: user.Groups,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExpiryTime)),
+			Issuer:    tokenIssuer,
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	ss, err := token.SignedString(myJWTSigningKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign the token, err: %w", err)
+	}
+
+	return ss, nil
 }
 
 var ErrUnknownClaimsType = errors.New("unknown claims type")

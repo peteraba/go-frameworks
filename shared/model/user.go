@@ -29,7 +29,7 @@ type UserUpdate struct {
 }
 
 type UserLogin struct {
-	Name     string `json:"name,omitempty" validate:"max=64"`
+	Email    string `json:"email,omitempty" validate:"email"`
 	Password string `json:"password" validate:"required,min=8"`
 }
 
@@ -96,7 +96,7 @@ func RandomUserLogin() UserLogin {
 
 	p1 := gofakeit.Password(true, true, true, true, true, 12)
 
-	return UserLogin{Name: u.Name, Password: p1}
+	return UserLogin{Email: u.Email, Password: p1}
 }
 func RandomUserPasswordUpdate() UserPasswordUpdate {
 	p1 := gofakeit.Password(true, true, true, true, true, 12)

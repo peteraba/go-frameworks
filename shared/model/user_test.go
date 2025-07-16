@@ -61,8 +61,8 @@ func TestRandomUserLogin(t *testing.T) {
 	got2 := model.RandomUserLogin()
 
 	// verify
-	assert.NotEmpty(t, got1.Name)
-	assert.NotEqual(t, got1.Name, got2.Name)
+	assert.NotEmpty(t, got1.Email)
+	assert.NotEqual(t, got1.Email, got2.Email)
 	assert.NotEmpty(t, got1.Password)
 	assert.NotEqual(t, got1.Password, got2.Password)
 	assert.NoError(t, got1.Validate())

@@ -65,16 +65,13 @@ func TestUserService_Login(t *testing.T) {
 
 	// Create a user
 	sut := model.RandomUserCreate()
-	sut.Email = "loginuser@example.com"
-	sut.Password = "TestPassword123!"
-	sut.Password2 = "TestPassword123!"
 	_, err := userService.Create(sut)
 	require.NoError(t, err)
 
 	t.Run("successful login", func(t *testing.T) {
 		// prepare
 		ul := model.UserLogin{
-			Name:     sut.Name,
+			Email:    sut.Email,
 			Password: sut.Password,
 		}
 
@@ -90,7 +87,7 @@ func TestUserService_Login(t *testing.T) {
 	t.Run("wrong password", func(t *testing.T) {
 		// prepare
 		ul := model.UserLogin{
-			Name:     sut.Name,
+			Email:    sut.Email,
 			Password: "wrong",
 		}
 
@@ -105,7 +102,7 @@ func TestUserService_Login(t *testing.T) {
 	t.Run("user not found", func(t *testing.T) {
 		// prepare
 		ul := model.UserLogin{
-			Name:     "notfound@example.com",
+			Email:    "notfound@example.com",
 			Password: "irrelevant",
 		}
 
@@ -130,7 +127,7 @@ func TestUserService_TokenToLoggedInUser(t *testing.T) {
 	t.Run("successful decoding", func(t *testing.T) {
 		// prepare
 		ul := model.UserLogin{
-			Name:     ucStub.Name,
+			Email:    ucStub.Email,
 			Password: ucStub.Password,
 		}
 

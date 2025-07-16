@@ -22,7 +22,7 @@ type ListRepo interface {
 type InMemoryListRepo struct {
 	mu    sync.RWMutex
 	lists map[string]model.List
-	keys  []string
+	ids   []string
 	dirty bool
 }
 
@@ -48,7 +48,7 @@ func (r *InMemoryListRepo) Create(list model.ListCreate) (model.List, error) {
 	}
 
 	r.lists[listModel.ID] = listModel
-	r.keys = append(r.keys, listModel.ID)
+	r.ids = append(r.ids, listModel.ID)
 	r.dirty = false
 
 	return listModel, nil
@@ -122,7 +122,7 @@ func (r *InMemoryListRepo) List() ([]model.List, error) {
 		sort.Strings(keys)
 
 		r.dirty = false
-		r.keys = keys
+		r.ids = keys
 	}
 
 	l := len(r.lists)
@@ -131,7 +131,7 @@ func (r *InMemoryListRepo) List() ([]model.List, error) {
 	}
 
 	lists := make([]model.List, 0, l)
-	for i, key := range r.keys {
+	for i, key := range r.ids {
 		if i >= l {
 			break
 		}

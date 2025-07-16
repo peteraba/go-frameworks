@@ -26,7 +26,7 @@ var ErrProjectNotFound = errors.New("project not found")
 type InMemoryProjectRepo struct {
 	mu       sync.RWMutex
 	projects map[string]model.Project
-	keys     []string
+	ids      []string
 	dirty    bool
 }
 
@@ -51,7 +51,7 @@ func (r *InMemoryProjectRepo) Create(project model.ProjectCreate) (model.Project
 	}
 
 	r.projects[p.ID] = p
-	r.keys = append(r.keys, p.ID)
+	r.ids = append(r.ids, p.ID)
 	r.dirty = true
 
 	return p, nil
@@ -116,7 +116,7 @@ func (r *InMemoryProjectRepo) List() ([]model.Project, error) {
 		sort.Strings(keys)
 
 		r.dirty = false
-		r.keys = keys
+		r.ids = keys
 	}
 
 	l := len(r.projects)
@@ -125,7 +125,7 @@ func (r *InMemoryProjectRepo) List() ([]model.Project, error) {
 	}
 
 	projects := make([]model.Project, 0, l)
-	for i, key := range r.keys {
+	for i, key := range r.ids {
 		if i >= l {
 			break
 		}

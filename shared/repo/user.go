@@ -15,6 +15,7 @@ const maxUserListLength = 100
 type UserRepo interface {
 	Create(user model.UserCreate, passwordHash, passwordSalt []byte) (model.User, error)
 	GetByID(id string) (model.User, error)
+	GetByEmail(email string) (model.User, error)
 	Update(id string, update model.UserUpdate) (model.User, error)
 	Delete(id string) error
 	List() ([]model.User, error)
@@ -24,15 +25,17 @@ type UserRepo interface {
 var ErrUserNotFound = errors.New("user not found")
 
 type InMemoryUserRepo struct {
-	mu    sync.RWMutex
-	users map[string]model.User
-	keys  []string
-	dirty bool
+	mu     sync.RWMutex
+	users  map[string]model.User
+	ids    []string
+	emails map[string]string
+	dirty  bool
 }
 
 func NewInMemoryUserRepo() *InMemoryUserRepo {
 	return &InMemoryUserRepo{
-		users: make(map[string]model.User),
+		users:  make(map[string]model.User),
+		emails: make(map[string]string),
 	}
 }
 
@@ -52,7 +55,8 @@ func (r *InMemoryUserRepo) Create(uc model.UserCreate, passwordHash, passwordSal
 	u.ID = ulid.Make().String()
 
 	r.users[u.ID] = u
-	r.keys = append(r.keys, u.ID)
+	r.ids = append(r.ids, u.ID)
+	r.emails[u.Email] = u.ID
 	r.dirty = true
 
 	return u, nil
@@ -68,6 +72,15 @@ func (r *InMemoryUserRepo) GetByID(id string) (model.User, error) {
 	}
 
 	return user, nil
+}
+
+func (r *InMemoryUserRepo) GetByEmail(email string) (model.User, error) {
+	id, exists := r.emails[email]
+	if !exists {
+		return model.User{}, fmt.Errorf("email not found: %s, err: %w", email, ErrUserNotFound)
+	}
+
+	return r.GetByID(id)
 }
 
 func (r *InMemoryUserRepo) Update(id string, update model.UserUpdate) (model.User, error) {
@@ -133,7 +146,7 @@ func (r *InMemoryUserRepo) List() ([]model.User, error) {
 		sort.Strings(keys)
 
 		r.dirty = false
-		r.keys = keys
+		r.ids = keys
 	}
 
 	l := len(r.users)
@@ -142,7 +155,7 @@ func (r *InMemoryUserRepo) List() ([]model.User, error) {
 	}
 
 	users := make([]model.User, 0, l)
-	for i, key := range r.keys {
+	for i, key := range r.ids {
 		if i >= l {
 			break
 		}
