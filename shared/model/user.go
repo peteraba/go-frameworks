@@ -29,8 +29,12 @@ type UserUpdate struct {
 }
 
 type UserLogin struct {
-	Email    string `json:"email,omitempty" validate:"email"`
+	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token" validate:"required"`
 }
 
 type UserPasswordUpdate struct {
@@ -59,6 +63,9 @@ func (uu *UserUpdate) Validate() error {
 }
 func (ul *UserLogin) Validate() error {
 	return validate.Struct(ul)
+}
+func (lr *LoginResponse) Validate() error {
+	return validate.Struct(lr)
 }
 func (upu *UserPasswordUpdate) Validate() error {
 	return validate.Struct(upu)
@@ -97,6 +104,12 @@ func RandomUserLogin() UserLogin {
 	p1 := gofakeit.Password(true, true, true, true, true, 12)
 
 	return UserLogin{Email: u.Email, Password: p1}
+}
+
+func RandomLoginResponse() LoginResponse {
+	// Generate a mock JWT token (this is just for testing purposes)
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+	return LoginResponse{Token: token}
 }
 func RandomUserPasswordUpdate() UserPasswordUpdate {
 	p1 := gofakeit.Password(true, true, true, true, true, 12)
