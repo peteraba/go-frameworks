@@ -16,8 +16,6 @@ func TestUserService_Create(t *testing.T) {
 
 	t.Run("successful creation", func(t *testing.T) {
 		uc := model.RandomUserCreate()
-		uc.Password = "SuperSecret123!"
-		uc.Password2 = "SuperSecret123!"
 
 		user, err := sut.Create(uc)
 		require.NoError(t, err)
@@ -31,7 +29,6 @@ func TestUserService_Create(t *testing.T) {
 
 	t.Run("passwords do not match", func(t *testing.T) {
 		uc := model.RandomUserCreate()
-		uc.Password = "SuperSecret123!"
 		uc.Password2 = "DifferentPassword!"
 
 		user, err := sut.Create(uc)
@@ -53,13 +50,98 @@ func TestUserService_Create(t *testing.T) {
 	t.Run("repo returns error", func(t *testing.T) {
 		// Simulate duplicate user by using the same repo and user details
 		uc := model.RandomUserCreate()
-		uc.Password = "SuperSecret123!"
-		uc.Password2 = "SuperSecret123!"
 
 		_, err := sut.Create(uc)
 		require.NoError(t, err)
 		// Try to create again with the same details (should not error, as ID is generated, but let's check)
 		_, err = sut.Create(uc)
 		assert.NoError(t, err)
+	})
+}
+
+func TestUserService_Login(t *testing.T) {
+	userRepo := repo.NewInMemoryUserRepo()
+	userService := service.NewUserService(userRepo)
+
+	// Create a user
+	sut := model.RandomUserCreate()
+	sut.Email = "loginuser@example.com"
+	sut.Password = "TestPassword123!"
+	sut.Password2 = "TestPassword123!"
+	_, err := userService.Create(sut)
+	require.NoError(t, err)
+
+	t.Run("successful login", func(t *testing.T) {
+		// prepare
+		ul := model.UserLogin{
+			Name:     sut.Name,
+			Password: sut.Password,
+		}
+
+		// execute
+		token, err := userService.Login(ul)
+
+		// verify
+		assert.NoError(t, err)
+		assert.Greater(t, len(token), 200)
+		assert.Less(t, len(token), 400)
+	})
+
+	t.Run("wrong password", func(t *testing.T) {
+		// prepare
+		ul := model.UserLogin{
+			Name:     sut.Name,
+			Password: "wrong",
+		}
+
+		// execute
+		_, err := userService.Login(ul)
+
+		// verify
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "invalid credentials")
+	})
+
+	t.Run("user not found", func(t *testing.T) {
+		// prepare
+		ul := model.UserLogin{
+			Name:     "notfound@example.com",
+			Password: "irrelevant",
+		}
+
+		// execute
+		_, err := userService.Login(ul)
+
+		// verify
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, repo.ErrUserNotFound)
+	})
+}
+
+func TestUserService_TokenToLoggedInUser(t *testing.T) {
+	userRepo := repo.NewInMemoryUserRepo()
+	userService := service.NewUserService(userRepo)
+
+	// Create a user
+	ucStub := model.RandomUserCreate()
+	userStub, err := userService.Create(ucStub)
+	require.NoError(t, err)
+
+	t.Run("successful decoding", func(t *testing.T) {
+		// prepare
+		ul := model.UserLogin{
+			Name:     ucStub.Name,
+			Password: ucStub.Password,
+		}
+
+		token, err := userService.Login(ul)
+		require.NoError(t, err)
+
+		// execute
+		liu, err := userService.TokenToLoggedInUser(token)
+
+		// verify
+		assert.NoError(t, err)
+		assert.Equal(t, userStub.ID, liu.ID)
 	})
 }

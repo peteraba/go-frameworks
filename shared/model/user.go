@@ -1,6 +1,9 @@
 package model
 
-import "github.com/brianvoe/gofakeit/v7"
+import (
+	"github.com/brianvoe/gofakeit/v7"
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type User struct {
 	ID           string   `json:"id" validate:"required,max=26" fake:"{ulid}"`
@@ -35,6 +38,16 @@ type UserPasswordUpdate struct {
 	Password2 string `json:"password2" validate:"required,min=8,eqfield=Password"`
 }
 
+type LoggedInUser struct {
+	ID     string
+	Name   string
+	Groups []string
+	jwt.RegisteredClaims
+}
+
+// Ensure we implement [jwt.ClaimsValidator] at compile time so we know our custom Validate method is used.
+var _ jwt.ClaimsValidator = (*LoggedInUser)(nil)
+
 func (u *User) Validate() error {
 	return validate.Struct(u)
 }
@@ -49,6 +62,9 @@ func (ul *UserLogin) Validate() error {
 }
 func (upu *UserPasswordUpdate) Validate() error {
 	return validate.Struct(upu)
+}
+func (liu *LoggedInUser) Validate() error {
+	return validate.Struct(liu)
 }
 
 func RandomUser() User {
