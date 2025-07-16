@@ -65,8 +65,6 @@ func TestRandomUserLogin(t *testing.T) {
 	assert.NotEqual(t, got1.Name, got2.Name)
 	assert.NotEmpty(t, got1.Password)
 	assert.NotEqual(t, got1.Password, got2.Password)
-	assert.Equal(t, got1.Password, got1.Password2)
-	assert.Equal(t, got2.Password, got2.Password2)
 	assert.NoError(t, got1.Validate())
 	assert.NoError(t, got2.Validate())
 }

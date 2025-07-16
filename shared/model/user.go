@@ -3,20 +3,20 @@ package model
 import "github.com/brianvoe/gofakeit/v7"
 
 type User struct {
-	ID       string   `json:"id" validate:"required,max=26" fake:"{ulid}"`
-	Name     string   `json:"name" validate:"required,max=64" fake:"{firstname} {lastname}"`
-	Email    string   `json:"email" validate:"required,email" fake:"{email}"`
-	Groups   []string `json:"groups" validate:"dive,max=26" fakesize:"1,2" fake:"{randomstring:[project.read,project.write]}"`
-	Password []byte   `json:"-" fake:"-"`
-	Token    string   `json:"token,omitempty" fake:"-"`
+	ID           string   `json:"id" validate:"required,max=26" fake:"{ulid}"`
+	Name         string   `json:"name" validate:"required,max=64" fake:"{firstname} {lastname}"`
+	Email        string   `json:"email" validate:"required,email" fake:"{email}"`
+	Groups       []string `json:"groups" validate:"dive,max=26"`
+	PasswordHash []byte   `json:"-"`
+	PasswordSalt []byte   `json:"-"`
 }
 
 type UserCreate struct {
 	Name      string   `json:"name" validate:"required,max=64"`
 	Email     string   `json:"email" validate:"required,email"`
+	Password  string   `json:"password" validate:"required,min=8"`
+	Password2 string   `json:"password2" validate:"required,min=8,eqfield=Password"`
 	Groups    []string `json:"groups" validate:"dive,max=26"`
-	Password  string   `json:"password"`
-	Password2 string   `json:"password2"`
 }
 
 type UserUpdate struct {
@@ -26,14 +26,13 @@ type UserUpdate struct {
 }
 
 type UserLogin struct {
-	Name      string `json:"name,omitempty" validate:"max=64"`
-	Password  string `json:"password"`
-	Password2 string `json:"password2"`
+	Name     string `json:"name,omitempty" validate:"max=64"`
+	Password string `json:"password" validate:"required,min=8"`
 }
 
 type UserPasswordUpdate struct {
-	Password  string `json:"password"`
-	Password2 string `json:"password2"`
+	Password  string `json:"password" validate:"required,min=8"`
+	Password2 string `json:"password2" validate:"required,min=8,eqfield=Password"`
 }
 
 func (u *User) Validate() error {
@@ -62,10 +61,14 @@ func RandomUser() User {
 }
 func RandomUserCreate() UserCreate {
 	u := RandomUser()
-
-	p1 := gofakeit.Password(true, true, true, true, true, 12)
-
-	return UserCreate{Name: u.Name, Email: u.Email, Groups: u.Groups, Password: p1, Password2: p1}
+	pw := gofakeit.Password(true, true, true, true, false, 12)
+	return UserCreate{
+		Name:      u.Name,
+		Email:     u.Email,
+		Password:  pw,
+		Password2: pw,
+		Groups:    u.Groups,
+	}
 }
 func RandomUserUpdate() UserUpdate {
 	u := RandomUser()
@@ -77,7 +80,7 @@ func RandomUserLogin() UserLogin {
 
 	p1 := gofakeit.Password(true, true, true, true, true, 12)
 
-	return UserLogin{Name: u.Name, Password: p1, Password2: p1}
+	return UserLogin{Name: u.Name, Password: p1}
 }
 func RandomUserPasswordUpdate() UserPasswordUpdate {
 	p1 := gofakeit.Password(true, true, true, true, true, 12)

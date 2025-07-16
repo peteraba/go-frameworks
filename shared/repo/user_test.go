@@ -15,10 +15,11 @@ func TestInMemoryUserRepo_Create(t *testing.T) {
 	t.Run("successful creation", func(t *testing.T) {
 		// prepare
 		userCreateStub := model.RandomUserCreate()
-		passwordStub := []byte{}
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
 
 		// execute
-		user, err := r.Create(userCreateStub, passwordStub)
+		user, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
 
 		// verify
 		assert.NoError(t, err)
@@ -34,9 +35,10 @@ func TestInMemoryUserRepo_GetByID(t *testing.T) {
 	t.Run("existing user", func(t *testing.T) {
 		// prepare
 		userCreateStub := model.RandomUserCreate()
-		passwordStub := []byte{}
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
 
-		userStub, err := r.Create(userCreateStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
 		require.NoError(t, err)
 
 		// execute
@@ -63,9 +65,10 @@ func TestInMemoryUserRepo_Update(t *testing.T) {
 	t.Run("successful update", func(t *testing.T) {
 		// prepare
 		userCreateStub := model.RandomUserCreate()
-		passwordStub := []byte{}
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
 
-		userStub, err := r.Create(userCreateStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
 		require.NoError(t, err)
 		userUpdateStub := model.UserUpdate{
 			Name:  "Updated Name",
@@ -85,9 +88,10 @@ func TestInMemoryUserRepo_Update(t *testing.T) {
 	t.Run("partial update", func(t *testing.T) {
 		// prepare
 		userCreateStub := model.RandomUserCreate()
-		passwordStub := []byte{}
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
 
-		userStub, err := r.Create(userCreateStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
 		require.NoError(t, err)
 		userUpdateStub := model.UserUpdate{
 			Name: "Only Name Updated",
@@ -117,9 +121,10 @@ func TestInMemoryUserRepo_Update(t *testing.T) {
 	t.Run("empty update fields are ignored", func(t *testing.T) {
 		// prepare
 		userCreateStub := model.RandomUserCreate()
-		passwordStub := []byte{}
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
 
-		userStub, err := r.Create(userCreateStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
 		require.NoError(t, err)
 		userUpdateStub := model.UserUpdate{}
 
@@ -139,9 +144,10 @@ func TestInMemoryUserRepo_Delete(t *testing.T) {
 	t.Run("successful deletion", func(t *testing.T) {
 		// prepare
 		userCreateStub := model.RandomUserCreate()
-		passwordStub := []byte{}
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
 
-		userStub, err := r.Create(userCreateStub, passwordStub)
+		userStub, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
 		require.NoError(t, err)
 
 		// execute
@@ -178,10 +184,11 @@ func TestInMemoryUserRepo_List(t *testing.T) {
 		// prepare
 		userCreateStub1 := model.RandomUserCreate()
 		userCreateStub2 := model.RandomUserCreate()
-		passwordStub := []byte{}
+		passwordHashStub := []byte{}
+		passwordSaltStub := []byte{}
 
-		userStub1, _ := r.Create(userCreateStub1, passwordStub)
-		userStub2, _ := r.Create(userCreateStub2, passwordStub)
+		userStub1, _ := r.Create(userCreateStub1, passwordHashStub, passwordSaltStub)
+		userStub2, _ := r.Create(userCreateStub2, passwordHashStub, passwordSaltStub)
 
 		// execute
 		users, err := r.List()
@@ -194,10 +201,12 @@ func TestInMemoryUserRepo_List(t *testing.T) {
 	})
 
 	t.Run("with 100+ lists", func(t *testing.T) {
+		var passwordHashStub, passwordSaltStub []byte
+
 		// prepare
 		for range 105 {
 			userCreateStub := model.RandomUserCreate()
-			_, err := r.Create(userCreateStub, []byte{})
+			_, err := r.Create(userCreateStub, passwordHashStub, passwordSaltStub)
 			require.NoError(t, err)
 		}
 

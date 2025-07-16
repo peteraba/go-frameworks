@@ -13,7 +13,7 @@ import (
 const maxUserListLength = 100
 
 type UserRepo interface {
-	Create(user model.UserCreate) (model.User, error)
+	Create(user model.UserCreate, passwordHash, passwordSalt []byte) (model.User, error)
 	GetByID(id string) (model.User, error)
 	Update(id string, update model.UserUpdate) (model.User, error)
 	Delete(id string) error
@@ -36,16 +36,17 @@ func NewInMemoryUserRepo() *InMemoryUserRepo {
 	}
 }
 
-func (r *InMemoryUserRepo) Create(uc model.UserCreate, password []byte) (model.User, error) {
+func (r *InMemoryUserRepo) Create(uc model.UserCreate, passwordHash, passwordSalt []byte) (model.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	u := model.User{
-		ID:       ulid.Make().String(),
-		Name:     uc.Name,
-		Email:    uc.Email,
-		Groups:   uc.Groups,
-		Password: password,
+		ID:           ulid.Make().String(),
+		Name:         uc.Name,
+		Email:        uc.Email,
+		Groups:       uc.Groups,
+		PasswordHash: passwordHash,
+		PasswordSalt: passwordSalt,
 	}
 
 	u.ID = ulid.Make().String()
@@ -90,7 +91,7 @@ func (r *InMemoryUserRepo) Update(id string, update model.UserUpdate) (model.Use
 	return user, nil
 }
 
-func (r *InMemoryUserRepo) UpdatePassword(id string, password []byte) (model.User, error) {
+func (r *InMemoryUserRepo) UpdatePassword(id string, passwordHash []byte) (model.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -99,7 +100,7 @@ func (r *InMemoryUserRepo) UpdatePassword(id string, password []byte) (model.Use
 		return model.User{}, fmt.Errorf("not found: %s, err: %w", id, ErrUserNotFound)
 	}
 
-	user.Password = password
+	user.PasswordHash = passwordHash
 
 	r.users[id] = user
 
