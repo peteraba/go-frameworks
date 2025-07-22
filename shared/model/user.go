@@ -52,28 +52,36 @@ type LoggedInUser struct {
 // Ensure we implement [jwt.ClaimsValidator] at compile time so we know our custom Validate method is used.
 var _ jwt.ClaimsValidator = (*LoggedInUser)(nil)
 
+// User validation methods
 func (u *User) Validate() error {
 	return validate.Struct(u)
 }
+
 func (uc *UserCreate) Validate() error {
 	return validate.Struct(uc)
 }
+
 func (uu *UserUpdate) Validate() error {
 	return validate.Struct(uu)
 }
+
 func (ul *UserLogin) Validate() error {
 	return validate.Struct(ul)
 }
+
 func (lr *LoginResponse) Validate() error {
 	return validate.Struct(lr)
 }
+
 func (upu *UserPasswordUpdate) Validate() error {
 	return validate.Struct(upu)
 }
+
 func (liu *LoggedInUser) Validate() error {
 	return validate.Struct(liu)
 }
 
+// Random generation methods for User
 func RandomUser() User {
 	var u User
 	if err := gofakeit.Struct(&u); err != nil {
@@ -82,6 +90,7 @@ func RandomUser() User {
 
 	return u
 }
+
 func RandomUserCreate() UserCreate {
 	u := RandomUser()
 	pw := gofakeit.Password(true, true, true, true, false, 12)
@@ -93,11 +102,13 @@ func RandomUserCreate() UserCreate {
 		Groups:    u.Groups,
 	}
 }
+
 func RandomUserUpdate() UserUpdate {
 	u := RandomUser()
 
 	return UserUpdate{Name: u.Name, Email: u.Email, Groups: u.Groups}
 }
+
 func RandomUserLogin() UserLogin {
 	u := RandomUser()
 
@@ -107,10 +118,12 @@ func RandomUserLogin() UserLogin {
 }
 
 func RandomLoginResponse() LoginResponse {
-	// Generate a mock JWT token (this is just for testing purposes)
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+	// Generate a random JWT-like token (not a real JWT, just for testing)
+	token := gofakeit.UUID() + "." + gofakeit.UUID() + "." + gofakeit.UUID()
+
 	return LoginResponse{Token: token}
 }
+
 func RandomUserPasswordUpdate() UserPasswordUpdate {
 	p1 := gofakeit.Password(true, true, true, true, true, 12)
 

@@ -12,7 +12,7 @@ import (
 const maxListListLength = 100
 
 type ListRepo interface {
-	Create(list model.List) (model.List, error)
+	Create(list model.ListCreate) (model.List, error)
 	GetByID(id string) (model.List, error)
 	Update(id string, update model.ListUpdate) (model.List, error)
 	Delete(id string) error

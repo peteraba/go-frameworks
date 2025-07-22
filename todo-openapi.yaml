@@ -9,6 +9,8 @@ tags:
     description: "Operations related to TODO items"
   - name: "user"
     description: "Operations related to users"
+  - name: "health"
+    description: "Health check operations"
 
 info:
   title: TODO Application API
@@ -592,6 +594,26 @@ paths:
                   error:
                     type: string
                     example: "Invalid request format"
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      tags:
+        - health
+      responses:
+        '200':
+          description: Health check OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+              example:
+                message: ok
 
 components:
   headers:
